@@ -36,7 +36,7 @@ class Template:
             if isinstance(action, Bet):
                 if randint(0, 100) < 35:
                     return Bet(self.stack/2)
-                else
+                else:
                     return Check()
 
         return Call()
