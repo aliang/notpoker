@@ -28,31 +28,57 @@ class NotPokerTemplate:
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
-        
-        # This calls Zach's evaluator
-        print self.evaluate_preflop()
 
         if not self.board:
-            # replace with your preflop logic
             print "preflop"
+            return self.preflop_strategy()
         elif self.board:
             if len(self.board) == 3:
-                # replace with your postflop logic
                 print "flopped"
+                return self.flop_strategy()
             elif len(self.board) == 4:
                 # replace with your turn logic
                 print "turn"
+                return self.turn_strategy()
             elif len(self.board) == 5:
                 # replace with your river logic
                 print "river"
+                return self.river_strategy()
 
-        # this is the default action, in case you forget to return something
+        # this is the default action, in case you forget to return something.
+        # it's better than folding
         return Check()
         
+    def preflop_strategy(self):
+        """
+        Returns an action before the flop, based on the table and the player
+        """
+        # This calls Zach's evaluator
+        print self.evaluate_preflop()
+        return Check()
+    
+    def flop_strategy(self):
+        """
+        Returns an action after the flop, based on the table and the player
+        """
+        return Check()
+    
+    def turn_strategy(self):
+        """
+        Returns an action after the turn, based on the table and the player
+        """
+        return Check()
+    
+    def river_strategy(self):
+        """
+        Returns an action after the river, based on the table and the player
+        """
+        return Check()
+    
     def evaluate_preflop(self):
         """
-        Return the fraction of other hands you beat (assuming opponent has any
-        two cards).
+        Return the fraction of other hands you beat before the flop
+        (assuming opponent has any two cards).
         """
         # This is Zach's pre-flop evaluator
         preflop_order_matrix = [[87,169,168,166,167,165,159,149,135,121,105,86,59],
@@ -96,10 +122,22 @@ class NotPokerTemplate:
         return preflop_percentile
     
     def evaluate_flop(self):
-        pass
+        """
+        Return the fraction of other hands you beat after the flop
+        (assuming opponent has any two cards)
+        """
+        return 1
         
     def evaluate_turn(self):
-        pass
+        """
+        Return the fraction of other hands you beat after the turn
+        (assuming opponent has any two cards)
+        """
+        return 1
     
     def evaluate_river(self):
-        pass
+        """
+        Return the fraction of other hands you beat after the river
+        (assuming opponent has any two cards)
+        """
+        return 1
