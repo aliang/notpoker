@@ -3,8 +3,8 @@ from random import randint
 
 class NotPokerTemplate:
     def __init__(self):
-        """This is a very simple player that demonstrates the API and is a good
-        template for getting started
+        """This is a template for writing our own bots. (The other template is
+        the template they included)
         """
         # my name
         self.name = "NotPokerTemplateBot"

@@ -2,7 +2,7 @@ from pokerbots.engine.game import Table
 from pokerbots.player.pokerbot import Pokerbot
 
 p1 = Pokerbot('Template')
-p2 = Pokerbot('Zachbot')
+p2 = Pokerbot('ZachBot')
 
 t = Table(p1, p2)
 
