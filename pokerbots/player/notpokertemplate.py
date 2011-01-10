@@ -70,8 +70,7 @@ class NotPokerTemplate:
         if not self.board:
             # replace with your preflop logic
             print "preflop"
-        
-        if self.board:
+        elif self.board:
             if len(self.board) == 3:
                 # replace with your postflop logic
                 print "flopped"
@@ -82,5 +81,5 @@ class NotPokerTemplate:
                 # replace with your river logic
                 print "river"
 
-        # get rid of this line
+        # this is the default action, in case you forget to return something
         return Check()
