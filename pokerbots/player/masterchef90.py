@@ -1,3 +1,6 @@
+# Spartan 117: Master Chef
+# Team members: Zach Wissner-Gross and Jen Balakrishnan
+
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
 from random import randint
 from numpy import *
@@ -286,7 +289,7 @@ class MasterChef:
                     if sign(strength_diff[nonzero(strength_diff!=0)[0][0]]) > 0:
                         beat_opponent = beat_opponent+1     # my hand is better than opponent's
                 else:
-                    beat_opponent = beat_opponent+1     #my hand and opponent's are the same
+                    beat_opponent = beat_opponent+0.5     #my hand and opponent's are the same
 
         # this is the fraction of hands you beat
         flop_percentile = beat_opponent/total_opponent
@@ -332,7 +335,7 @@ class MasterChef:
                     if sign(strength_diff[nonzero(strength_diff!=0)[0][0]]) > 0:
                         beat_opponent = beat_opponent+1     # my hand is better than opponent's
                 else:
-                    beat_opponent = beat_opponent+1     #my hand and opponent's are the same
+                    beat_opponent = beat_opponent+0.5     #my hand and opponent's are the same
 
         # this is the fraction of hands you beat
         turn_percentile = beat_opponent/total_opponent
@@ -378,7 +381,7 @@ class MasterChef:
                     if sign(strength_diff[nonzero(strength_diff!=0)[0][0]]) > 0:
                         beat_opponent = beat_opponent+1     # my hand is better than opponent's
                 else:
-                    beat_opponent = beat_opponent+1     #my hand and opponent's are the same
+                    beat_opponent = beat_opponent+0.5     #my hand and opponent's are the same
 
         # this is the fraction of hands you beat
         river_percentile = beat_opponent/total_opponent
@@ -472,7 +475,7 @@ class MasterChef:
                 if hand_strength[0] < 2:
                     hand_strength = array([2,pair_cards,kickers[0],kickers[1],kickers[2],0])
         # just a high card
-        else:
+        elif hand_strength[0] < 1:
             kickers = flipud(sort(card_ranks))
             hand_strength = array([1,kickers[0],kickers[1],kickers[2],kickers[3],kickers[4]])
             
