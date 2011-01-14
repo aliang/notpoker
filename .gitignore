@@ -1,5 +1,9 @@
 *~
 \#*\#
+.Python
+bin/*
+include/*
+lib/*
 pokerbots/__init__.pyc
 pokerbots/hh/*.txt
 pokerbots/player/*.pyc
