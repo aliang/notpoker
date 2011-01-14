@@ -2,7 +2,7 @@ from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
 from random import randint
 from numpy import *
 
-class MasterChef:
+class MasterChef70:
     def __init__(self):
         """This is a template for writing our own bots. (The other template is
         the template they included)
