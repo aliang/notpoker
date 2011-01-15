@@ -4,8 +4,9 @@ from hand_evaluator import HandEvaluator
 
 class AlvinBot:
     def __init__(self):
-        """This is a very simple player that demonstrates the API and is a good
-        template for getting started
+        """
+        This bot is currently MasterChef50, but using Alvin's fast hand
+        evaluator. It plays 50 games against itself in under 3 seconds.
         """
         # my name
         self.name = "AlvinBot"
@@ -79,7 +80,7 @@ class AlvinBot:
                     value_bet = int(round(potodds_ratio * preflop_percentile * pot_size / (1 - preflop_percentile)))
                     if value_bet >= self.stack:
                         return Raise(self.stack + self.pip)
-                    elif value_bet >= 2*chips_to_add:
+                    elif value_bet >= 2 * chips_to_add:
                         return Raise(value_bet + self.pip)
                     elif value_bet >= chips_to_add:
                         return Call()
@@ -114,12 +115,12 @@ class AlvinBot:
                 else:
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = pot_size - 2*self.pip
+                chips_to_add = pot_size - 2 * self.pip
                 if flop_percentile < 1:
                     value_bet = int(round(potodds_ratio * flop_percentile * pot_size/(1 - flop_percentile)))
                     if value_bet >= self.stack:
                         return Raise(self.stack + self.pip)
-                    elif value_bet >= 2*chips_to_add:
+                    elif value_bet >= 2 * chips_to_add:
                         return Raise(value_bet + self.pip)
                     elif value_bet >= chips_to_add:
                         return Call()
@@ -154,12 +155,12 @@ class AlvinBot:
                 else:
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = pot_size - 2*self.pip
+                chips_to_add = pot_size - 2 * self.pip
                 if turn_percentile < 1:
                     value_bet = int(round(potodds_ratio * turn_percentile * pot_size / (1 - turn_percentile)))
                     if value_bet >= self.stack:
                         return Raise(self.stack + self.pip)
-                    elif value_bet >= 2*chips_to_add:
+                    elif value_bet >= 2 * chips_to_add:
                         return Raise(value_bet + self.pip)
                     elif value_bet >= chips_to_add:
                         return Call()
@@ -194,12 +195,12 @@ class AlvinBot:
                 else:
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = pot_size - 2*self.pip
+                chips_to_add = pot_size - 2 * self.pip
                 if river_percentile < 1:
                     value_bet = int(round(potodds_ratio * river_percentile * pot_size / (1 - river_percentile)))
                     if value_bet >= self.stack:
                         return Raise(self.stack + self.pip)
-                    elif value_bet >= 2*chips_to_add:
+                    elif value_bet >= 2 * chips_to_add:
                         return Raise(value_bet + self.pip)
                     elif value_bet >= chips_to_add:
                         return Call()
