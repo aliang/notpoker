@@ -1,7 +1,9 @@
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
 from random import randint
+from lookupbot import LookupBot
+from hand_evaluator import HandEvaluator
 
-class AlvinBot:
+class AlvinBot(LookupBot):
     def __init__(self):
         """This is a very simple player that demonstrates the API and is a good
         template for getting started
@@ -37,5 +39,15 @@ class AlvinBot:
         self.hand_history.append(self.last)
         
         # see other templates for a modular way of determining an action
+        if not self.board.board:
+            percentile = HandEvaluator.evaluate_preflop_hand(self.hand)
+        elif self.board:
+            percentile = HandEvaluator.evaluate_hand(self.board.cards + list(self.hand))
+            if len(self.board.board) == 3:
+                return Check()
+            elif len(self.board.board) == 4:
+                return Check()
+            elif len(self.board.board) == 5:
+                return Check()
         
         return Check()
