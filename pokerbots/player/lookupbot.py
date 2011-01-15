@@ -4,8 +4,8 @@ from hand_evaluator import HandEvaluator
 
 class LookupBot:
     """
-    I think you can subclass this bot now as the template.
-    In you bot you might want to override __init__ and respond
+    This is the new template bot.
+    Copy this file to a new bot, then override __init__ and respond
     """
     def __init__(self):
         # my name
@@ -32,9 +32,9 @@ class LookupBot:
         """
 
         if not self.board.board:
-            percentile = HandEvaluator.evaluate_preflop_hand(self.hand)
+            hand_data = HandEvaluator.evaluate_preflop_hand(self.hand)
         elif self.board:
-            percentile = HandEvaluator.evaluate_hand(self.board.cards + list(self.hand))
+            hand_data = HandEvaluator.evaluate_hand(self.board.cards + list(self.hand))
             if len(self.board.board) == 3:
                 return Check()
             elif len(self.board.board) == 4:

@@ -3,8 +3,12 @@ from random import randint
 
 class NotPokerTemplate:
     def __init__(self):
-        """This is a template for writing our own bots. (The other template is
+        """
+        This is a template for writing our own bots. (The other template is
         the template they included)
+        
+        I wouldn't use this template anymore, see lookupbot.py for a
+        much faster hand evaluator.
         """
         # my name
         self.name = "NotPokerTemplateBot"
