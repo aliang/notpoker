@@ -15,7 +15,6 @@ class HandEvaluator:
             }
         
         # This could be faster, but it doesn't run very much so whatever
-
         sorted_rank = sorted([hand[0].rank, hand[1].rank])
         if hand[0].suit == hand[1].suit:
             preflop_order = LookupTables.preflop_order_matrix[sorted_rank[1] - 2][sorted_rank[0] - 2]
@@ -47,6 +46,10 @@ class HandEvaluator:
         percentile = 0.0
         if len(cards) == 5:
             rank = evaluate_rank(cards)
+            # TODO: For 6 and 7 cards, the space is different
+            # because only two cards vary. Do we still need to iterate
+            # over the opponent cards to get percentile? Rank is still
+            # ok, you can use it for fast comparison
             percentile = LookupTables.rank_to_percentile_5[rank - 1]
         elif len(cards) == 6:
             # evaluate all hands, choose the best one.
@@ -89,6 +92,9 @@ class HandEvaluator:
         # OR them together to get the final result
         return b_mask | r_mask | p_mask | cdhs_mask
 
+    def card_to_binary_lookup(card):
+        return LookupTables.card_to_binary[card.rank][card.suit]
+
     # TODO: Return a class of hand too? Would be useful to see if we can make
     # a draw or something.
     def evaluate_rank(hand):
@@ -97,7 +103,7 @@ class HandEvaluator:
         """
         # This implementation uses the binary representation from
         # card_to_binary
-        card_to_binary = HandEvaluator.card_to_binary
+        card_to_binary = HandEvaluator.card_to_binary_lookup
 
         # bh stands for binary hand
         bh = map(card_to_binary, hand)
@@ -127,4 +133,5 @@ class HandEvaluator:
     evaluate_preflop_hand = staticmethod(evaluate_preflop_hand)        
     evaluate_hand = staticmethod(evaluate_hand)
     card_to_binary = staticmethod(card_to_binary)
+    card_to_binary_lookup = staticmethod(card_to_binary_lookup)
     evaluate_rank = staticmethod(evaluate_rank)
