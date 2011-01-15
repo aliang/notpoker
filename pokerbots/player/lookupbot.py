@@ -63,7 +63,7 @@ def evaluate_hand(cards):
         rank = min(map(evaluate_rank, possible_hands))
         percentile = LookupTables.rank_to_percentile_7[rank - 1]
     return {
-        'rank': rank
+        'rank': rank,
         'percentile': percentile
     }
 
