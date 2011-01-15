@@ -46,17 +46,26 @@ def evaluate_hand(cards):
         rank: rank within the 7462 equivalence classes,
         percentile: the percentile of hands you beat based on this rank
     """
-        
+    
+    rank = 7463
+    percentile = 0.0
     if len(cards) == 5:
-        return evaluate_rank(cards)
-    elif len(cards) > 5:
+        rank = evaluate_rank(cards)
+        percentile = LookupTables.rank_to_percentile_5[rank - 1]
+    elif len(cards) == 6:
         # evaluate all hands, choose the best one.
         # warning, don't pass too many cards here...
         possible_hands = combinations(cards, 5)
-        return min(map(evaluate_rank, possible_hands))
-    else:
-        # there must be some sort of error, so assume we're weak hahaha
-        return 7463
+        rank = min(map(evaluate_rank, possible_hands))
+        percentile = LookupTables.rank_to_percentile_6[rank - 1]
+    elif len(cards) == 7:
+        possible_hands = combinations(cards, 5)
+        rank = min(map(evaluate_rank, possible_hands))
+        percentile = LookupTables.rank_to_percentile_7[rank - 1]
+    return {
+        'rank': rank
+        'percentile': percentile
+    }
 
 def card_to_binary(card):
     """
@@ -96,7 +105,6 @@ def evaluate_rank(hand):
     # card_to_binary
     
     # bh stands for binary hand
-    
     bh = map(card_to_binary, hand)
     has_flush = reduce(__and__, bh, 0xF000)
     # This is a unique number based on the ranks if your cards,
