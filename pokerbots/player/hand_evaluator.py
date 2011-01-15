@@ -46,10 +46,9 @@ class HandEvaluator:
         percentile = 0.0
         if len(cards) == 5:
             rank = evaluate_rank(cards)
-            # TODO: For 6 and 7 cards, the space is different
-            # because only two cards vary. Do we still need to iterate
-            # over the opponent cards to get percentile? Rank is still
-            # ok, you can use it for fast comparison
+            # TODO: The space is different because only two cards vary.
+            # The percentiles we look up are against any 5, 6, or 7 cards,
+            # not against any 2.
             percentile = LookupTables.rank_to_percentile_5[rank - 1]
         elif len(cards) == 6:
             # evaluate all hands, choose the best one.
