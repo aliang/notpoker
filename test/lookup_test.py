@@ -1,6 +1,7 @@
 # This is just a file to test the lookup bot
 # primes = [2,3,5,7,11,13,17,19,23,29,31,37,41]
-
+import sys
+sys.path.append("../")
 from pokerbots.engine.game import Card
 from pokerbots.player.hand_evaluator import HandEvaluator
 from itertools import combinations
@@ -43,7 +44,7 @@ for k in sorted(hands_6.keys()):
     assert rank_6 == rank_5
 print "----Testing 7-card hands----"
 for k in sorted(hands_7.keys()):
-    rank_7 = "not implemented" # HandEvaluator.Seven.evaluate_rank(hands_7[k])
+    rank_7 = HandEvaluator.Seven.evaluate_rank(hands_7[k])
     rank_5 = min(map(HandEvaluator.Five.evaluate_rank, combinations(hands_7[k],5)))
     print "Rank of %s is %s (%s expected)" % (k, rank_7, rank_5)
     # assert rank_7 == rank_5

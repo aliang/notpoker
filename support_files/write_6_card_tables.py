@@ -289,10 +289,14 @@ def write_even_xors_to_odd_xors_to_rank(): # 4-1, 2-2
     fh.write("even_xors_to_odd_xors_to_rank = {\n")
     for even_xor in result.keys():
         fh.write("%s: { " % (even_xor,))
-        fh.write(", ".join(map(lambda odd_xor: "%s: %s" % (odd_xor, result[even_xor][odd_xor]),
-            result[even_xor].keys())))
+        fh.write(",\n".join(map(
+            lambda chunk: ", ".join(map(
+                lambda odd_xor: "%s: %s" % (odd_xor, result[even_xor][odd_xor]),
+                chunk)),
+            chunker(result[even_xor].keys(), 4))))
         fh.write(" },\n")
     fh.write("}")
     fh.close()
 
-write_prime_products_to_rank()
+# write_prime_products_to_rank()
+write_even_xors_to_odd_xors_to_rank()

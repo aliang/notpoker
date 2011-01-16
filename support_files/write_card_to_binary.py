@@ -36,6 +36,6 @@ card_to_binary_values = [
 ]
 
 for card in deck:
-    card_to_binary_values[card.rank][card.suit] = HandEvaluator.Six.card_to_binary(card)
+    card_to_binary_values[card.rank][card.suit] = HandEvaluator.Seven.card_to_binary(card)
 
 print card_to_binary_values

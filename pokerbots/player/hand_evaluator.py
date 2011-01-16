@@ -112,7 +112,7 @@ class HandEvaluator:
             using the best 5-card hand from the given 6-card hand.
             """
             # bh stands for binary hand, map to that representation
-            card_to_binary = HandEvaluator.Six.card_to_binary
+            card_to_binary = HandEvaluator.Six.card_to_binary_lookup
             bh = map(card_to_binary, hand)
         
             # We can determine if it's a flush using a lookup table.
@@ -131,7 +131,7 @@ class HandEvaluator:
             # That value will have either 4 or 5 bits
             if flush_suit:
                 if even_xor == 0:
-                    # just filter out the card(s) not in the right suit
+                    # There might be 0 or 1 cards in the wrong suit, so filter
                     # TODO: There might be a faster way?
                     bits = reduce(__or__, map(
                         lambda card: (card >> 16),
@@ -206,10 +206,15 @@ class HandEvaluator:
             Convert the pokerbots.engine.game.Card representation to a binary
             representation for use in 7-card hand evaluation
             """
-            return None
-        
+            # Same as for 6 cards
+            b_mask = 1 << (14 + card.rank)
+            q_mask = LookupTables.primes[card.suit - 1] << 12
+            r_mask = (card.rank - 2) << 8
+            p_mask = LookupTables.primes[card.rank - 2]
+            return b_mask | q_mask | r_mask | p_mask
+
         def card_to_binary_lookup(card):
-            return None
+            return LookupTables.Seven.card_to_binary[card.rank][card.suit]
         
         def evaluate_rank(hand):
             """
@@ -217,7 +222,7 @@ class HandEvaluator:
             using the best 5-card hand from the given 6-card hand.
             """
             # bh stands for binary hand, map to that representation
-            card_to_binary = HandEvaluator.Seven.card_to_binary
+            card_to_binary = HandEvaluator.Seven.card_to_binary_lookup
             bh = map(card_to_binary, hand)
         
             # Use a lookup table to determine if it's a flush as with 6 cards
@@ -229,42 +234,63 @@ class HandEvaluator:
             # Now use ranks to determine hand via lookup
             odd_xor = reduce(__xor__, bh) >> 16
             even_xor = (reduce(__or__, bh) >> 16) ^ odd_xor
-            # If you have a flush, use odd_xor to find the rank
-            # That value will have either 3, 5 or 7 bits
+
             if flush_suit:
                 if even_xor == 0:
-                    # just filter out the card(s) not in the right suit
+                    # There will be 0-2 cards not in the right suit
                     # TODO: There might be a faster way?
                     bits = reduce(__or__, map(
                         lambda card: (card >> 16),
                         filter(
                             lambda card: (card >> 12) & 0xF == flush_suit, bh)))
-                    return LookupTables.Six.flush_rank_bits_to_rank[bits]
+                    return LookupTables.Seven.flush_rank_bits_to_rank[bits]
                 else:
-                    # you have a pair, one card in the flush suit,
-                    # so just use the ranks you have by or'ing the two
-                    return LookupTables.Six.flush_rank_bits_to_rank[odd_xor | even_xor]
+                    return LookupTables.Seven.flush_rank_bits_to_rank[odd_xor | even_xor]
             
             # Odd-even XOR again, see Six.evaluate_rank for details
             # 7 is odd, so you have to have an odd number of bits in odd_xor
-            #x 7-0 => (1,1,1,1,1,1,1)
-            # 5-1 => (1,1,1,1,1,2)
-            #x 5-0 => (1,1,1,1,3)
-            # 3-2 => (1,1,1,2,2)
-            # 3-1 => (1,1,1,4) or (1,1,3,2)
-            #x 3-0 => (1,3,3)
-            # 1-3 => (1,2,2,2)
-            # 1-2 => (1,2,4) or (3,2,2)
+            # 7-0 => (1,1,1,1,1,1,1) - High card
+            # 5-1 => (1,1,1,1,1,2) - Pair
+            # 5-0 => (1,1,1,1,3) - Trips
+            # 3-2 => (1,1,1,2,2) - Two pair
+            # 3-1 => (1,1,1,4) or (1,1,3,2) - Quads or full house
+            # 3-0 => (1,3,3) - Full house
+            # 1-3 => (1,2,2,2) - Two pair
+            # 1-2 => (1,2,4) or (3,2,2) - Quads or full house
+            # 1-1 => (3,4) - Quads
             
             if even_xor == 0: # x-0                
-                pass
+                odd_popcount = PopCount.popcount(odd_xor)
+                if odd_popcount == 7: # 7-0
+                    return LookupTables.Seven.odd_xors_to_rank[odd_xor]
+                else: # 5-0, 3-0
+                    prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
+                    return LookupTables.Seven.prime_products_to_rank[prime_product]
             else:
-                pass
+                odd_popcount = PopCount.popcount(odd_xor)
+                if odd_popcount == 5: # 5-1
+                    return LookupTables.Seven.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
+                elif odd_popcount == 3:
+                    even_popcount = PopCount.popcount(even_xor)
+                    if even_popcount == 2: # 3-2
+                        return LookupTables.Seven.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
+                    else: # 3-1
+                        prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
+                        return LookupTables.Seven.prime_products_to_rank[prime_product]
+                else:
+                    even_popcount = PopCount.popcount(even_xor)
+                    if even_popcount == 3: # 1-3
+                        return LookupTables.Seven.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
+                    elif even_popcount == 2: # 1-2
+                        prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
+                        return LookupTables.Seven.prime_products_to_rank[prime_product]
+                    else: # 1-1
+                        return LookupTables.Seven.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
         card_to_binary = staticmethod(card_to_binary)
         card_to_binary_lookup = staticmethod(card_to_binary_lookup)
         evaluate_rank = staticmethod(evaluate_rank)
 
-    # These are the main functions, we have to define them afterwards
+    # These are the main functions
     def evaluate_hand(cards):
         """
         Return the rank and percentile of the best 5 card hand made from these
