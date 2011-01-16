@@ -236,8 +236,9 @@ class HandEvaluator:
             even_xor = (reduce(__or__, bh) >> 16) ^ odd_xor
 
             if flush_suit:
+                # There will be 0-2 cards not in the right suit
+                even_popcount = PopCount.popcount(even_xor)
                 if even_xor == 0:
-                    # There will be 0-2 cards not in the right suit
                     # TODO: There might be a faster way?
                     bits = reduce(__or__, map(
                         lambda card: (card >> 16),
@@ -245,7 +246,14 @@ class HandEvaluator:
                             lambda card: (card >> 12) & 0xF == flush_suit, bh)))
                     return LookupTables.Seven.flush_rank_bits_to_rank[bits]
                 else:
-                    return LookupTables.Seven.flush_rank_bits_to_rank[odd_xor | even_xor]
+                    if even_popcount == 2:
+                        return LookupTables.Seven.flush_rank_bits_to_rank[odd_xor | even_xor]
+                    else:
+                        bits = reduce(__or__, map(
+                            lambda card: (card >> 16),
+                            filter(
+                                lambda card: (card >> 12) & 0xF == flush_suit, bh)))
+                        return LookupTables.Seven.flush_rank_bits_to_rank[bits]
             
             # Odd-even XOR again, see Six.evaluate_rank for details
             # 7 is odd, so you have to have an odd number of bits in odd_xor

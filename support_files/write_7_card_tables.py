@@ -363,7 +363,7 @@ def write_even_xors_to_odd_xors_to_rank(): # 5-1, 3-2, 1-3, 1-1
     fh.close()
 
 # write_prime_products_to_flush()
-# write_flush_rank_bits_to_rank()
+write_flush_rank_bits_to_rank()
 # write_odd_xors_to_rank()
 # write_prime_products_to_rank()
-write_even_xors_to_odd_xors_to_rank()
+# write_even_xors_to_odd_xors_to_rank()
