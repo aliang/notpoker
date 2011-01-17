@@ -299,55 +299,41 @@ class HandEvaluator:
         evaluate_rank = staticmethod(evaluate_rank)
 
     # These are the main functions
-    def evaluate_hand(cards):
+    def evaluate_hand(hand, board):
         """
-        Return the rank and percentile of the best 5 card hand made from these
+        Return the percentile of the best 5 card hand made from these
         cards, against an equivalent number of cards.
-        Rank is given as a dict with:
-            rank: rank within the 7462 equivalence classes,
-            percentile: the percentile of hands you beat based on this rank
         """
+        
+        cards = hand + board
+        if len(cards) == 5:
+            evaluator = HandEvaluator.Five
+        elif len(cards) == 6:
+            evaluator = HandEvaluator.Six
+        elif len(cards) == 7:
+            evaluator = HandEvaluator.Seven
 
         # Default values in case we screw up
         rank = 7463
         percentile = 0.0
-        if len(cards) == 5:
-            rank = HandEvaluator.Five.evaluate_rank(cards)
-            # TODO: The space is different because only two cards vary.
-            # The percentiles we look up are against any 5, 6, or 7 cards,
-            # not against any 2. So we need to update this.
-            percentile = LookupTables.Five.rank_to_percentile_5[rank - 1]
-        elif len(cards) == 6:
-            # evaluate all hands, choose the best one.
-            # warning, don't pass too many cards here...
-            try:
-                rank = HandEvaluator.Six.evaluate_rank(cards)
-            except:
-                possible_hands = combinations(cards, 5)
-                rank = min(map(HandEvaluator.Five.evaluate_rank, possible_hands))
-            percentile = LookupTables.Five.rank_to_percentile_6[rank - 1]
-        elif len(cards) == 7:
-            try:
-                rank = HandEvaluator.Seven.evaluate_rank(cards)
-            except:
-                possible_hands = combinations(cards, 5)
-                rank = min(map(HandEvaluator.Five.evaluate_rank, possible_hands))
-            percentile = LookupTables.Five.rank_to_percentile_7[rank - 1]
-        return {
-            'rank': rank,
-            'percentile': percentile
-        }
+        
+        rank = evaluator.evaluate_rank(cards)
+        possible_opponent_hands = list(combinations(LookupTables.deck - set(cards), 2))
+        hands_beaten = 0
+        for h in possible_opponent_hands:
+            possible_opponent_rank = evaluator.evaluate_rank(list(h) + board)
+            if rank < possible_opponent_rank:
+                # you beat this hand
+                hands_beaten += 1
+            else:
+                hands_beaten += 0.5
+        return hands_beaten / len(list(possible_opponent_hands))
 
     def evaluate_preflop_hand(hand):
         """
         Return the fraction of other hands you beat before the flop
         (assuming opponent has any two cards).
         """
-        if len(hand) != 2:
-            return {
-                'rank': 300,
-                'percentile': 0
-            }
 
         # This could be faster, but it doesn't run very much so whatever
         sorted_rank = sorted([hand[0].rank, hand[1].rank])
@@ -360,9 +346,7 @@ class HandEvaluator:
         preflop_percentile = 1 - sum(LookupTables.Two.preflop_count_matrix[0:preflop_order - 1]) / \
             LookupTables.Two.preflop_count_sum
 
-        return {
-            'rank': preflop_order,
-            'percentile': preflop_percentile
-        }
+        return preflop_percentile
+
     evaluate_preflop_hand = staticmethod(evaluate_preflop_hand)
     evaluate_hand = staticmethod(evaluate_hand)

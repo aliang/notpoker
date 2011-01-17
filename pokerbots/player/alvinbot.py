@@ -11,7 +11,9 @@ class AlvinBot:
         # my name
         self.name = "AlvinBot"
         # to keep hand_history
-        self.hand_history = []
+        self.hand_counter = 0
+        # to store percentiles for this hand
+        self.percentiles = {}
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -32,22 +34,28 @@ class AlvinBot:
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
+        if self.hands_played != self.hand_counter:
+            self.hand_counter = self.hands_played
+            # reset stuff
+            self.percentiles = {}
         
         # self.last contains the last hand
         # define self.hand_history as [] in __init__
         # or you can't append to this list
-        self.hand_history.append(self.last)
+        # self.hand_history.append(self.last)
         
         # see other templates for a modular way of determining an action
         if not self.board.board:
-            hand_data = HandEvaluator.evaluate_preflop_hand(self.hand)
+            self.percentiles['preflop'] = HandEvaluator.evaluate_preflop_hand(self.hand)
         elif self.board:
-            hand_data = HandEvaluator.evaluate_hand(self.board.cards + list(self.hand))
             if len(self.board.board) == 3:
+                self.percentiles['flop'] = HandEvaluator.evaluate_hand(list(self.hand) + self.board.cards)
                 return Check()
             elif len(self.board.board) == 4:
+                self.percentiles['turn'] = HandEvaluator.evaluate_hand(list(self.hand) + self.board.cards)
                 return Check()
             elif len(self.board.board) == 5:
+                self.percentiles['river'] = HandEvaluator.evaluate_hand(list(self.hand) + self.board.cards)
                 return Check()
         
         return Check()
@@ -56,8 +64,7 @@ class AlvinBot:
         """
         Returns an action before the flop, based on the table and the player
         """
-        # This calls Zach's preflop evaluator
-        preflop_percentile = hand_data['percentile']
+        preflop_percentile = self.percentiles['preflop']
 
         potodds_ratio = 0.50
         pot_size = 800 - self.opponent['stack'] - self.stack
@@ -97,7 +104,7 @@ class AlvinBot:
         Returns an action after the flop, based on the table and the player
         """
         # This calls Zach's flop evaluator
-        flop_percentile = hand_data['percentile']
+        flop_percentile = self.percentiles['flop']
 
         potodds_ratio = 0.50
         pot_size = 800 - self.opponent['stack'] - self.stack
@@ -137,7 +144,7 @@ class AlvinBot:
         Returns an action after the turn, based on the table and the player
         """
         # This calls Zach's turn evaluator
-        turn_percentile = hand_data['percentile']
+        turn_percentile = self.percentiles['turn']
 
         potodds_ratio = 0.50
         pot_size = 800 - self.opponent['stack'] - self.stack
@@ -177,7 +184,7 @@ class AlvinBot:
         Returns an action after the river, based on the table and the player
         """
         # This calls Zach's river evaluator
-        river_percentile = hand_data['percentile']
+        river_percentile = self.percentiles['river']
 
         potodds_ratio = 0.50
         pot_size = 800 - self.opponent['stack'] - self.stack
