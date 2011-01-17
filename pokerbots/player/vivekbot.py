@@ -31,6 +31,10 @@ class VivekBot:
         self.board = None # a Board object
         self.legal = None # list of allowed actions, e.g. [Raise(8), Call(), Fold()]
 
+        # state variables
+        self.potodds_ratio = 0.5
+        self.opponent_bet_history = zeros(0)
+
     def respond(self):
         """Based on your game state variables (see the __init__), make a
         decision and return an action. If you return an illegal action, the
@@ -58,6 +62,7 @@ class VivekBot:
             # reset stuff
             self.percentiles = {}
             self.opponent_percentiles = {}
+            self.evaluate_opponent()
         
         # self.last contains the last hand
         # define self.hand_history as [] in __init__
@@ -91,7 +96,7 @@ class VivekBot:
         """
         preflop_percentile = self.percentiles['preflop']
 
-        potodds_ratio = 0.50
+        potodds_ratio = self.potodds_ratio
         pot_size = self.pot
 
         for action in self.legal:
@@ -131,7 +136,7 @@ class VivekBot:
         # This calls Zach's flop evaluator
         flop_percentile = self.percentiles['flop']
 
-        potodds_ratio = 0.50
+        potodds_ratio = self.potodds_ratio
         pot_size = self.pot
 
         for action in self.legal:
@@ -171,7 +176,7 @@ class VivekBot:
         # This calls Zach's turn evaluator
         turn_percentile = self.percentiles['turn']
 
-        potodds_ratio = 0.50
+        potodds_ratio = self.potodds_ratio
         pot_size = self.pot
 
         for action in self.legal:
@@ -211,7 +216,7 @@ class VivekBot:
         # This calls Zach's river evaluator
         river_percentile = self.percentiles['river']
 
-        potodds_ratio = 0.50
+        potodds_ratio = self.potodds_ratio
         pot_size = self.pot
 
         for action in self.legal:
@@ -243,3 +248,70 @@ class VivekBot:
 
         # if something screws up, try checking
         return Check()
+
+
+    def evaluate_opponent(self):
+        
+        if self.hands_played >= 1:           
+            last_pot = 0.0
+            self_bet_for_round = 0
+            opponent_bet_for_round = 0
+            community_ranks = zeros(0,int)
+            community_suits = zeros(0,int)
+
+            # obtain opponent's betting behavior from the previous round, and determine strength of hand if there's a showdown
+            # 
+            for play in self.last[1]:
+                if play[0] == self.name:
+                    if isinstance(play[1],Post):
+                        last_pot = last_pot + play[1].amount
+                        self_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Bet):
+                        last_pot = last_pot + play[1].amount
+                        self_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Raise):
+                        last_pot = last_pot - self_bet_for_round + play[1].amount
+                        self_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Call):
+                        last_pot = last_pot + opponent_bet_for_round - self_bet_for_round
+                        self_bet_for_round = opponent_bet_for_round
+                elif play[0] == self.opponent['name']:
+                    strength_of_bet = zeros(0)
+                    if isinstance(play[1],Post):
+                        last_pot = last_pot + play[1].amount
+                        opponent_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Bet):
+                        last_pot = last_pot + play[1].amount
+                        opponent_bet_for_round = play[1].amount
+                        strength_of_bet = play[1].amount/last_pot
+                    elif isinstance(play[1],Raise):
+                        last_pot = last_pot - opponent_bet_for_round + play[1].amount
+                        strength_of_bet = (play[1].amount - opponent_bet_for_round)/last_pot
+                        opponent_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Call):
+                        last_pot = last_pot + self_bet_for_round - opponent_bet_for_round
+                        strength_of_bet = (self_bet_for_round - opponent_bet_for_round)/last_pot
+                        opponent_bet_for_round = self_bet_for_round
+                    elif isinstance(play[1],Check):
+                        strength_of_bet = 0.0
+                    elif isinstance(play[1],Show):
+                        opponent_ranks = array([play[1].hand[0].rank,play[1].hand[1].rank])
+                        opponent_suits = array([play[1].hand[0].suit,play[1].hand[1].suit])
+                        strength_of_hand = self.percentile_of_hand(opponent_ranks,opponent_suits,
+                                                                   community_ranks,community_suits)
+
+                        HandEvaluator.evaluate_hand(play[1].hand, self.board.cards)
+                        
+                        #print strength_of_hand
+                    self.opponent_bet_history = append(self.opponent_bet_history,strength_of_bet)
+                    #print 'mean'
+                    #print mean(self.opponent_bet_history)
+                    #print 'std'
+                    #print std(self.opponent_bet_history)
+                elif play[0] == 'Dealer':
+                    # Determine what the cards are if all five are out -- prepare for showdown
+                    if len(play[1].cards) == 20:
+                        community_ranks = append(community_ranks,self.parse_ranks(play[1].cards))
+                        community_suits = append(community_suits,self.parse_suits(play[1].cards))                            
+                    self_bet_for_round = 0
+                    opponent_bet_for_round = 0
