@@ -7,6 +7,17 @@ def chunker(seq, size):
     return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
 
 class HandEvaluator:
+    class Two:
+        def evaluate_percentile(hand):
+            """
+            Using lookup table, return percentile of your hand with two cards
+            """
+            if hand[0].suit == hand[1].suit:
+                return LookupTables.Two.suited_ranks_to_percentile[hand[0].rank][hand[1].rank]
+            else:
+                return LookupTables.Two.unsuited_ranks_to_percentile[hand[0].rank][hand[1].rank]
+        evaluate_percentile = staticmethod(evaluate_percentile)
+            
     class Five:
         def card_to_binary(card):
             """
@@ -299,14 +310,16 @@ class HandEvaluator:
         evaluate_rank = staticmethod(evaluate_rank)
 
     # These are the main functions
-    def evaluate_hand(hand, board):
+    def evaluate_hand(hand, board=[]):
         """
         Return the percentile of the best 5 card hand made from these
         cards, against an equivalent number of cards.
         """
         
-        cards = hand + board
-        if len(cards) == 5:
+        cards = list(hand) + list(board)
+        if len(cards) == 2:
+            return HandEvaluator.Two.evaluate_percentile(hand)
+        elif len(cards) == 5:
             evaluator = HandEvaluator.Five
         elif len(cards) == 6:
             evaluator = HandEvaluator.Six
@@ -328,25 +341,6 @@ class HandEvaluator:
             else:
                 hands_beaten += 0.5
         return hands_beaten / len(list(possible_opponent_hands))
-
-    def evaluate_preflop_hand(hand):
-        """
-        Return the fraction of other hands you beat before the flop
-        (assuming opponent has any two cards).
-        """
-
-        # This could be faster, but it doesn't run very much so whatever
-        sorted_rank = sorted([hand[0].rank, hand[1].rank])
-        if hand[0].suit == hand[1].suit:
-            preflop_order = LookupTables.Two.preflop_order_matrix[sorted_rank[1] - 2][sorted_rank[0] - 2]
-        else:
-            preflop_order = LookupTables.Two.preflop_order_matrix[sorted_rank[0] - 2][sorted_rank[1] - 2]
-
-        # this is fraction of hands you beat
-        preflop_percentile = 1 - sum(LookupTables.Two.preflop_count_matrix[0:preflop_order - 1]) / \
-            LookupTables.Two.preflop_count_sum
-
-        return preflop_percentile
 
     evaluate_preflop_hand = staticmethod(evaluate_preflop_hand)
     evaluate_hand = staticmethod(evaluate_hand)

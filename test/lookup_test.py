@@ -48,7 +48,10 @@ for k in hands_6.keys():
 print "----Testing 2-card hands----"
 for k in sorted(hands_2.keys()):
     cards = hands_2[k]
-    print "Percentile of %s is %s" % (k, HandEvaluator.evaluate_preflop_hand(cards))
+    print "Percentile of %s is %s (%s expected)" % (k,
+        HandEvaluator.evaluate_hand(cards),
+        HandEvaluator.evaluate_preflop_hand(cards)
+    )
 print "----Testing 5-card hands----"
 for k in sorted(hands_5.keys()):
     cards = hands_5[k]

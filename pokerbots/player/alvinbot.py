@@ -69,7 +69,7 @@ class AlvinBot:
         preflop_percentile = self.percentiles['preflop']
 
         potodds_ratio = 0.50
-        pot_size = 800 - self.opponent['stack'] - self.stack
+        pot_size = self.pot
 
         for action in self.legal:
             if isinstance(action, Bet):
@@ -109,7 +109,7 @@ class AlvinBot:
         flop_percentile = self.percentiles['flop']
 
         potodds_ratio = 0.50
-        pot_size = 800 - self.opponent['stack'] - self.stack
+        pot_size = self.pot
 
         for action in self.legal:
             if isinstance(action, Bet):
@@ -149,7 +149,7 @@ class AlvinBot:
         turn_percentile = self.percentiles['turn']
 
         potodds_ratio = 0.50
-        pot_size = 800 - self.opponent['stack'] - self.stack
+        pot_size = self.pot
 
         for action in self.legal:
             if isinstance(action, Bet):
@@ -189,7 +189,7 @@ class AlvinBot:
         river_percentile = self.percentiles['river']
 
         potodds_ratio = 0.50
-        pot_size = 800 - self.opponent['stack'] - self.stack
+        pot_size = self.pot
 
         for action in self.legal:
             if isinstance(action, Bet):
