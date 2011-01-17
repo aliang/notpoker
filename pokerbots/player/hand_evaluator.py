@@ -342,5 +342,4 @@ class HandEvaluator:
                 hands_beaten += 0.5
         return hands_beaten / len(list(possible_opponent_hands))
 
-    evaluate_preflop_hand = staticmethod(evaluate_preflop_hand)
     evaluate_hand = staticmethod(evaluate_hand)
