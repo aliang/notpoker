@@ -14,31 +14,50 @@ class VivekBot:
         self.hand_counter = 0
         # to store percentiles for this hand
         self.percentiles = {}
+        # to store best estimates of opponent's percentiles
+        self.opponent_percentiles = {}
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
         # be reset. we recommend leaving the remainder of the init as is
         self.hand = None # a tuple
-        self.stack = None
-        self.pip = None
-        self.button = None
-        self.opponent = None
-        self.bb = None
-        self.sb = None
-        self.hands_played = None
+        self.stack = None # hopefully an integer
+        self.pip = None # integer, stake in pot
+        self.button = None # boolean, true if you have the button
+        self.opponent = None # dictionary with 'pip', 'button', 'name', 'stack' for opponent
+        self.bb = None # size of current big blind
+        self.sb = None # size of current small blind
+        self.hands_played = None # number of hands played
         self.board = None # a Board object
-        self.legal = None
+        self.legal = None # list of allowed actions, e.g. [Raise(8), Call(), Fold()]
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
-        
+        debug=True;
+
+        if debug:
+            print(self.name)
+            print('self.hand',self.hand)
+            print('self.stack',self.stack)
+            print('self.pip',self.pip)
+            print('self.button',self.button)
+            print('self.opponent',self.opponent)
+            print('self.bb',self.bb)
+            print('self.sb',self.sb)
+            print('self.hands_played',self.hands_played)
+            print('self.board',self.board)
+            print('self.legal',self.legal)
+            print('self.pot',self.pot)
+            ok = raw_input('press enter\n');
+            
         if self.hands_played != self.hand_counter:
             self.hand_counter = self.hands_played
             # reset stuff
             self.percentiles = {}
+            self.opponent_percentiles = {}
         
         # self.last contains the last hand
         # define self.hand_history as [] in __init__
