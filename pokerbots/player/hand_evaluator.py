@@ -325,6 +325,9 @@ class HandEvaluator:
             evaluator = HandEvaluator.Six
         elif len(cards) == 7:
             evaluator = HandEvaluator.Seven
+        else:
+            # wrong number of cards
+            return 0
 
         # Default values in case we screw up
         rank = 7463
@@ -338,8 +341,8 @@ class HandEvaluator:
             if rank < possible_opponent_rank:
                 # you beat this hand
                 hands_beaten += 1
-            else:
+            elif rank == possible_opponent_rank:
                 hands_beaten += 0.5
-        return hands_beaten / len(list(possible_opponent_hands))
+        return float(hands_beaten) / len(list(possible_opponent_hands))
 
     evaluate_hand = staticmethod(evaluate_hand)
