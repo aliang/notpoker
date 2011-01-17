@@ -11,7 +11,9 @@ class VivekBot:
         # my name
         self.name = "VivekBot"
         # to keep hand_history
-        self.hand_history = []
+        self.hand_counter = 0
+        # to store percentiles for this hand
+        self.percentiles = {}
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -32,44 +34,46 @@ class VivekBot:
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
-
-        hand_data = HandEvaluator.evaluate_hand(self.board.cards + list(self.hand))
-
         
+        if self.hands_played != self.hand_counter:
+            self.hand_counter = self.hands_played
+            # reset stuff
+            self.percentiles = {}
         
         # self.last contains the last hand
         # define self.hand_history as [] in __init__
         # or you can't append to this list
-        self.hand_history.append(self.last)
+        # self.hand_history.append(self.last)
         
         # see other templates for a modular way of determining an action
         if not self.board.board:
-            hand_data = HandEvaluator.evaluate_hand(self.hand)
-            return self.preflop_strategy(hand_data);
+            if 'preflop' not in self.percentiles:
+                self.percentiles['preflop'] = HandEvaluator.evaluate_hand(self.hand)
+            return self.preflop_strategy()
         elif self.board:
-            hand_data = HandEvaluator.evaluate_hand(self.board.cards + list(self.hand))
             if len(self.board.board) == 3:
-                return Check()
+                if 'flop' not in self.percentiles:
+                    self.percentiles['flop'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
+                return self.flop_strategy()
             elif len(self.board.board) == 4:
-                return Check()
+                if 'turn' not in self.percentiles:
+                    self.percentiles['turn'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
+                return self.turn_strategy()
             elif len(self.board.board) == 5:
-                return Check()
+                if 'river' not in self.percentiles:
+                    self.percentiles['river'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
+                return self.river_strategy()
         
         return Check()
     
-    def preflop_strategy(self, hand_data):
+    def preflop_strategy(self):
         """
         Returns an action before the flop, based on the table and the player
         """
-        # This calls Zach's preflop evaluator
-        preflop_percentile = hand_data
+        preflop_percentile = self.percentiles['preflop']
 
         potodds_ratio = 0.50
-        pot_size = 800 - self.opponent['stack'] - self.stack
-        print(self.pot)
-        print(self.stack)
-        print(self.opponent['stack'])
-        
+        pot_size = self.pot
 
         for action in self.legal:
             if isinstance(action, Bet):
@@ -101,15 +105,15 @@ class VivekBot:
         # if something screws up, try checking
         return Check()
         
-    def flop_strategy(self, hand_data):
+    def flop_strategy(self):
         """
         Returns an action after the flop, based on the table and the player
         """
         # This calls Zach's flop evaluator
-        flop_percentile = hand_data['percentile']
+        flop_percentile = self.percentiles['flop']
 
         potodds_ratio = 0.50
-        pot_size = 800 - self.opponent['stack'] - self.stack
+        pot_size = self.pot
 
         for action in self.legal:
             if isinstance(action, Bet):
@@ -141,15 +145,15 @@ class VivekBot:
         # if something screws up, try checking
         return Check()
 
-    def turn_strategy(self, hand_data):
+    def turn_strategy(self):
         """
         Returns an action after the turn, based on the table and the player
         """
         # This calls Zach's turn evaluator
-        turn_percentile = hand_data['percentile']
+        turn_percentile = self.percentiles['turn']
 
         potodds_ratio = 0.50
-        pot_size = 800 - self.opponent['stack'] - self.stack
+        pot_size = self.pot
 
         for action in self.legal:
             if isinstance(action, Bet):
@@ -181,15 +185,15 @@ class VivekBot:
         # if something screws up, try checking
         return Check()
 
-    def river_strategy(self, hand_data):
+    def river_strategy(self):
         """
         Returns an action after the river, based on the table and the player
         """
         # This calls Zach's river evaluator
-        river_percentile = hand_data['percentile']
+        river_percentile = self.percentiles['river']
 
         potodds_ratio = 0.50
-        pot_size = 800 - self.opponent['stack'] - self.stack
+        pot_size = self.pot
 
         for action in self.legal:
             if isinstance(action, Bet):
