@@ -34,6 +34,7 @@ class AlvinBot:
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
+        
         if self.hands_played != self.hand_counter:
             self.hand_counter = self.hands_played
             # reset stuff
@@ -47,6 +48,7 @@ class AlvinBot:
         # see other templates for a modular way of determining an action
         if not self.board.board:
             self.percentiles['preflop'] = HandEvaluator.evaluate_preflop_hand(self.hand)
+            return self.preflop_strategy()
         elif self.board:
             if len(self.board.board) == 3:
                 self.percentiles['flop'] = HandEvaluator.evaluate_hand(list(self.hand) + self.board.cards)
@@ -60,7 +62,7 @@ class AlvinBot:
         
         return Check()
     
-    def preflop_strategy(self, hand_data):
+    def preflop_strategy(self):
         """
         Returns an action before the flop, based on the table and the player
         """
@@ -99,7 +101,7 @@ class AlvinBot:
         # if something screws up, try checking
         return Check()
         
-    def flop_strategy(self, hand_data):
+    def flop_strategy(self):
         """
         Returns an action after the flop, based on the table and the player
         """
@@ -139,7 +141,7 @@ class AlvinBot:
         # if something screws up, try checking
         return Check()
 
-    def turn_strategy(self, hand_data):
+    def turn_strategy(self):
         """
         Returns an action after the turn, based on the table and the player
         """
@@ -179,7 +181,7 @@ class AlvinBot:
         # if something screws up, try checking
         return Check()
 
-    def river_strategy(self, hand_data):
+    def river_strategy(self):
         """
         Returns an action after the river, based on the table and the player
         """

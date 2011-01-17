@@ -8,4 +8,5 @@ from masterchef import MasterChef
 from masterchef50 import MasterChef50
 from masterchef70 import MasterChef70
 from masterchef90 import MasterChef90
+from mastermonte import MasterMonte
 from lookupbot import LookupBot
