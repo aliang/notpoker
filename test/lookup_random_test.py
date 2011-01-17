@@ -31,6 +31,7 @@ def test_6():
         rank_6 = HandEvaluator.Six.evaluate_rank(hand)
         if rank_5 != rank_6:
             print "Got rank %s from Six.evaluate_rank (%s expected)" % (rank_6, rank_5)
+            print hand
 
 def test_7():
     for i in xrange(number_of_runs):

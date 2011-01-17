@@ -24,6 +24,7 @@ class LookupTables:
     class Two:
         """
         Next 3 lookups are for Zach's pre-flop eval
+        TODO: Remove these tables since we precalcuate the percentiles
         """
         preflop_order_matrix = [
             [87,169,168,166,167,165,159,149,135,121,105,86,59],
