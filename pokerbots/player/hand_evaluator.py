@@ -80,7 +80,7 @@ class HandEvaluator:
             suit = 4
         return Card(rank,suit)
     
-    def evaluate_hand(hand, board, iterations=1000):
+    def evaluate_hand(hand, board=[], iterations=1000):
         """
         Return winning percentage of your hand, with ties counted as 0.5
         Includes Monte-Carlo simulation of running the board.
