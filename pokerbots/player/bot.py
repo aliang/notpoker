@@ -3,7 +3,7 @@ from random import randint
 from template import Template
 from zachbot import ZachBot
 from alvinbot import AlvinBot
-from vivekbot import VivekBot
+from vivekbot import vivekbot
 from notpokertemplate import NotPokerTemplate
 from masterchef import MasterChef
 from masterchef50 import MasterChef50
