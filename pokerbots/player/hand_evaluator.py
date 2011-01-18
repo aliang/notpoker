@@ -48,7 +48,8 @@ class HandEvaluator:
         Note that I don't check whether you passed a Card or the right string
         format!
         """
-        if isinstance(card, str):
+        # NOT str! Could be unicode
+        if isinstance(card, basestring):
             return card
         return card.__str__()
 
