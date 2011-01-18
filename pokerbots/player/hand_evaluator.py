@@ -44,7 +44,9 @@ class HandEvaluator:
     
     def card_to_str(card):
         """
-        Convert this card to a string or number for pypoker-eval
+        Convert this card to a string or number for pypoker-eval.
+        Note that I don't check whether you passed a Card or the right string
+        format!
         """
         if isinstance(card, str):
             return card
@@ -52,7 +54,8 @@ class HandEvaluator:
 
     def str_to_card(card_string):
         """
-        Convert this string to a pokerbots.engine.game.Card instance
+        Convert this string to a pokerbots.engine.game.Card instance.
+        Note that I don't check whether or not you passed the right format!
         """
         if isinstance(card_string, Card):
             return card
