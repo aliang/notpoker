@@ -1,348 +1,130 @@
-from lookup_tables import LookupTables
-from popcount import PopCount
-from itertools import combinations
-from operator import mul, __or__, __and__, __xor__
+import sys
 
-def chunker(seq, size):
-    return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
+from pokereval import PokerEval
+from pokerbots.engine.game import Card
 
 class HandEvaluator:
-    class Two:
-        def evaluate_percentile(hand):
-            """
-            Using lookup table, return percentile of your hand with two cards
-            """
+    evaluator = PokerEval()
+    
+    preflop_win_percentages_suited = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0.3598, 0.3682, 0.3784, 0.3766, 0.3814, 0.4026, 0.4241, 0.4484, 0.4738, 0.5017, 0.532, 0.5737],
+        [0, 0, 0.3598, 0, 0.3863, 0.3968, 0.3953, 0.4003, 0.4087, 0.4325, 0.4568, 0.4823, 0.5101, 0.5405, 0.5821],
+        [0, 0, 0.3682, 0.3863, 0, 0.4145, 0.4133, 0.4184, 0.427, 0.4385, 0.4653, 0.4906, 0.5185, 0.5488, 0.5903],
+        [0, 0, 0.3784, 0.3968, 0.4145, 0, 0.4313, 0.4367, 0.4454, 0.4572, 0.4721, 0.4999, 0.5276, 0.5579, 0.5992],
+        [0, 0, 0.3766, 0.3953, 0.4133, 0.4313, 0, 0.4536, 0.4623, 0.4742, 0.4894, 0.506, 0.536, 0.5664, 0.599],
+        [0, 0, 0.3814, 0.4003, 0.4184, 0.4367, 0.4536, 0, 0.4793, 0.4912, 0.5064, 0.5232, 0.543, 0.5753, 0.6098],
+        [0, 0, 0.4026, 0.4087, 0.427, 0.4454, 0.4623, 0.4793, 0, 0.5079, 0.5233, 0.5401, 0.5601, 0.5831, 0.6194],
+        [0, 0, 0.4241, 0.4325, 0.4385, 0.4572, 0.4742, 0.4912, 0.5079, 0, 0.5402, 0.5566, 0.5766, 0.5998, 0.6277],
+        [0, 0, 0.4484, 0.4568, 0.4653, 0.4721, 0.4894, 0.5064, 0.5233, 0.5402, 0, 0.5752, 0.5947, 0.6178, 0.6459],
+        [0, 0, 0.4738, 0.4823, 0.4906, 0.4999, 0.506, 0.5232, 0.5401, 0.5566, 0.5752, 0, 0.6026, 0.6256, 0.6539],
+        [0, 0, 0.5017, 0.5101, 0.5185, 0.5276, 0.536, 0.543, 0.5601, 0.5766, 0.5947, 0.6026, 0, 0.6339, 0.6621],
+        [0, 0, 0.532, 0.5405, 0.5488, 0.5579, 0.5664, 0.5753, 0.5831, 0.5998, 0.6178, 0.6256, 0.6339, 0, 0.6704],
+        [0, 0, 0.5737, 0.5821, 0.5903, 0.5992, 0.599, 0.6098, 0.6194, 0.6277, 0.6459, 0.6539, 0.6621, 0.6704, 0]
+    ]
+    
+    preflop_win_percentages_unsuited = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0.5033, 0.3229, 0.3319, 0.3428, 0.3406, 0.3458, 0.3682, 0.3909, 0.4165, 0.4434, 0.4729, 0.5051, 0.5492],
+        [0, 0, 0.3229, 0.5368, 0.3514, 0.3625, 0.3607, 0.3659, 0.3747, 0.4001, 0.4259, 0.4527, 0.4821, 0.5142, 0.5584],
+        [0, 0, 0.3319, 0.3514, 0.5702, 0.3815, 0.3801, 0.3854, 0.3944, 0.4067, 0.4349, 0.4618, 0.4912, 0.5232, 0.5672],
+        [0, 0, 0.3428, 0.3625, 0.3815, 0.6032, 0.3994, 0.4051, 0.4143, 0.4266, 0.4424, 0.4717, 0.5011, 0.5331, 0.5769],
+        [0, 0, 0.3406, 0.3607, 0.3801, 0.3994, 0.6328, 0.4232, 0.4323, 0.4449, 0.4608, 0.4784, 0.5102, 0.5421, 0.5768],
+        [0, 0, 0.3458, 0.3659, 0.3854, 0.4051, 0.4232, 0.6623, 0.4505, 0.463, 0.479, 0.4968, 0.5176, 0.5518, 0.5883],
+        [0, 0, 0.3682, 0.3747, 0.3944, 0.4143, 0.4323, 0.4505, 0.6915, 0.4809, 0.4971, 0.5149, 0.536, 0.5602, 0.5986],
+        [0, 0, 0.3909, 0.4001, 0.4067, 0.4266, 0.4449, 0.463, 0.4809, 0.7205, 0.5153, 0.5324, 0.5536, 0.578, 0.6076],
+        [0, 0, 0.4165, 0.4259, 0.4349, 0.4424, 0.4608, 0.479, 0.4971, 0.5153, 0.7501, 0.5524, 0.5728, 0.5973, 0.6271],
+        [0, 0, 0.4434, 0.4527, 0.4618, 0.4717, 0.4784, 0.4968, 0.5149, 0.5324, 0.5524, 0.7747, 0.5813, 0.6057, 0.6355],
+        [0, 0, 0.4729, 0.4821, 0.4912, 0.5011, 0.5102, 0.5176, 0.536, 0.5536, 0.5728, 0.5813, 0.7992, 0.6145, 0.6442],
+        [0, 0, 0.5051, 0.5142, 0.5232, 0.5331, 0.5421, 0.5518, 0.5602, 0.578, 0.5973, 0.6057, 0.6145, 0.8239, 0.6531],
+        [0, 0, 0.5492, 0.5584, 0.5672, 0.5769, 0.5768, 0.5883, 0.5986, 0.6076, 0.6271, 0.6355, 0.6442, 0.6531, 0.852]
+    ]
+    
+    def card_to_str(card):
+        """
+        Convert this card to a string or number for pypoker-eval.
+        Note that I don't check whether you passed a Card or the right string
+        format!
+        """
+        # NOT str! Could be unicode
+        if isinstance(card, basestring):
+            return card
+        return card.__str__()
+
+    def str_to_card(card_string):
+        """
+        Convert this string to a pokerbots.engine.game.Card instance.
+        Note that I don't check whether or not you passed the right format!
+        """
+        if isinstance(card_string, Card):
+            return card
+        rank_str = card_string[0].lower()
+        suit_str = card_string[1].lower()
+        rank = 2
+        suit = 1
+        if rank_str == "t":
+            rank = 10
+        elif rank_str == "j":
+            rank = 11
+        elif rank_str == "q":
+            rank = 12
+        elif rank_str == "k":
+            rank = 13
+        elif rank_str == "a":
+            rank = 14
+        if suit_str == "s":
+            suit = 1
+        elif suit_str == "h":
+            suit = 2
+        elif suit_str == "d":
+            suit = 3
+        elif suit_str == "c":
+            suit = 4
+        return Card(rank,suit)
+    
+    def evaluate_hand(hand, board=[], iterations=1000):
+        """
+        Return winning percentage of your hand, with ties counted as 0.5
+        Includes Monte-Carlo simulation of running the board.
+        Includes trying all possible opponent hands.
+        Arguments:
+        hand: your hand
+        board: the board if any
+        iterations: number of times to simulate
+        """
+        # If the board is determined, there's only 990 hands to run,
+        # so run them all
+        if len(board) == 5:
+            # convert to pypoker-eval format
+            hand = map(HandEvaluator.card_to_str, hand)
+            board = map(HandEvaluator.card_to_str, board)
+            poker_eval_result = HandEvaluator.evaluator.poker_eval(game="holdem",
+                pockets=[hand, [255,255]], dead=[],
+                board=board)
+        elif len(board) == 0:
+            # Use a lookup table, because this has been done before
             if hand[0].suit == hand[1].suit:
-                return LookupTables.Two.suited_ranks_to_percentile[hand[0].rank][hand[1].rank]
+                return HandEvaluator.preflop_win_percentages_suited[hand[0].rank][hand[1].rank]
             else:
-                return LookupTables.Two.unsuited_ranks_to_percentile[hand[0].rank][hand[1].rank]
-        evaluate_percentile = staticmethod(evaluate_percentile)
-            
-    class Five:
-        def card_to_binary(card):
-            """
-            Convert the pokerbots.engine.game.Card representation to a binary
-            representation for use in 5-card hand evaluation
-            """
-            # This is Cactus Kev's algorithm, reimplemented in Python since we can't
-            # use C libraries
-
-            # First we need to generate the following representation
-            # Bits marked x are not used.
-            # xxxbbbbb bbbbbbbb cdhsrrrr xxpppppp
-
-            # b is one bit flipped for A-2
-            # c, d, h, s are flipped if you have a club, diamond, heart, spade
-            # r is just the numerical rank in binary, with deuce = 0
-            # p is the prime from LookupTable.primes corresponding to the rank,
-            # in binary
-            # Then shift appropriately to fit the template above
-
-            b_mask = 1 << (14 + card.rank)
-            cdhs_mask = 1 << (card.suit + 11)
-            r_mask = (card.rank - 2) << 8
-            p_mask = LookupTables.primes[card.rank - 2]
-            # OR them together to get the final result
-            return b_mask | r_mask | p_mask | cdhs_mask
-
-        def card_to_binary_lookup(card):
-            return LookupTables.Five.card_to_binary[card.rank][card.suit]
-
-        # TODO: Return a class of hand too? Would be useful to see if we can make
-        # a draw or something.
-        def evaluate_rank(hand):
-            """
-            Return the rank of this 5-card hand amongst all 5-card hands.
-            """
-            # This implementation uses the binary representation from
-            # card_to_binary
-            card_to_binary = HandEvaluator.Five.card_to_binary_lookup
-
-            # bh stands for binary hand
-            bh = map(card_to_binary, hand)
-            has_flush = reduce(__and__, bh, 0xF000)
-            # This is a unique number based on the ranks if your cards,
-            # assuming your cards are all different
-            q = reduce(__or__, bh) >> 16
-            if has_flush:
-                # Look up the rank of this flush
-                return LookupTables.Five.flushes[q]
-            else:
-                # The q still works as a key if you have 5 unique cards,
-                # so see if we can look it up
-                possible_rank = LookupTables.Five.unique5[q]
-                if possible_rank != 0:
-                    return possible_rank
-                else:
-                    # We need a different lookup table with different keys
-                    # Compute the unique product of primes, because we have a pair
-                    # or trips, etc. Use the product to look up the rank.
-                    q = reduce(mul, map(lambda card: card & 0xFF, bh))
-                    # Here, use dict instead of sparse array (basically hashing)
-                    # I didn't bother using "perfect hash", the python hashing
-                    # shouldn't be terrible
-                    return LookupTables.Five.pairs.get(q)
-
-        card_to_binary = staticmethod(card_to_binary)
-        card_to_binary_lookup = staticmethod(card_to_binary_lookup)
-        evaluate_rank = staticmethod(evaluate_rank)
-    
-    class Six:
-        def card_to_binary(card):
-            """
-            Convert the pokerbots.engine.game.Card representation to a binary
-            representation for use in 6-card hand evaluation
-            """
-            # This a variant on Cactus Kev's algorithm. We need to replace
-            # the 4-bit representation of suit with a prime number representation
-            # so we can look up whether something is a flush by prime product
-        
-            # First we need to generate the following representation
-            # Bits marked x are not used.
-            # xxxbbbbb bbbbbbbb qqqqrrrr xxpppppp
-        
-            # b is one bit flipped for A-2
-            # q is 2, 3, 5, or 7 for spades, hearts, clubs, diamonds
-            # r is just the numerical rank in binary, with deuce = 0
-            # p is the prime from LookupTable.primes corresponding to the rank,
-            # in binary
-            # Then shift appropriately to fit the template above
-            b_mask = 1 << (14 + card.rank)
-            q_mask = LookupTables.primes[card.suit - 1] << 12
-            r_mask = (card.rank - 2) << 8
-            p_mask = LookupTables.primes[card.rank - 2]
-            # OR them together to get the final result
-            return b_mask | q_mask | r_mask | p_mask
-        
-        def card_to_binary_lookup(card):
-            return LookupTables.Six.card_to_binary[card.rank][card.suit]
-    
-        def evaluate_rank(hand):
-            """
-            Return the rank amongst all possible 5-card hands of any kind
-            using the best 5-card hand from the given 6-card hand.
-            """
-            # bh stands for binary hand, map to that representation
-            card_to_binary = HandEvaluator.Six.card_to_binary_lookup
-            bh = map(card_to_binary, hand)
-        
-            # We can determine if it's a flush using a lookup table.
-            # Basically use prime number trick but map to bool instead of rank
-            # Once you have a flush, there is no other higher hand you can make
-            # except straight flush, so just need to determine the highest flush
-            flush_prime = reduce(mul, map(lambda card: (card >> 12) & 0xF, bh))
-            flush_suit = False
-            if flush_prime in LookupTables.Six.prime_products_to_flush:
-                flush_suit = LookupTables.Six.prime_products_to_flush[flush_prime]
-        
-            # Now use ranks to determine hand via lookup
-            odd_xor = reduce(__xor__, bh) >> 16
-            even_xor = (reduce(__or__, bh) >> 16) ^ odd_xor
-            # If you have a flush, use odd_xor to find the rank
-            # That value will have either 4 or 5 bits
-            if flush_suit:
-                if even_xor == 0:
-                    # There might be 0 or 1 cards in the wrong suit, so filter
-                    # TODO: There might be a faster way?
-                    bits = reduce(__or__, map(
-                        lambda card: (card >> 16),
-                        filter(
-                            lambda card: (card >> 12) & 0xF == flush_suit, bh)))
-                    return LookupTables.Six.flush_rank_bits_to_rank[bits]
-                else:
-                    # you have a pair, one card in the flush suit,
-                    # so just use the ranks you have by or'ing the two
-                    return LookupTables.Six.flush_rank_bits_to_rank[odd_xor | even_xor]
-        
-            # Otherwise, get ready for a wild ride:
-        
-            # Can determine this by using 2 XORs to reduce the size of the
-            # lookup. You have an even number of cards, so any odd_xor with
-            # an odd number of bits set is not possible.
-            # Possibilities are odd-even:
-            # 6-0 => High card or straight (1,1,1,1,1,1)
-            #   Look up by odd_xor
-            # 4-1 => Pair (1,1,1,1,2)
-            #   Look up by even_xor (which pair) then odd_xor (which set of kickers)
-            # 4-0 => Trips (1,1,1,3)
-            #   Don't know which one is the triple, use prime product of ranks
-            # 2-2 => Two pair (1,1,2,2)
-            #   Look up by odd_xor then even_xor (or vice-versa)
-            # 2-1 => Four of a kind (1,1,4) or full house (1,3,2)
-            #   Look up by prime product
-            # 2-0 => Full house using 2 trips (3,3)
-            #   Look up by odd_xor
-            # 0-3 => Three pairs (2,2,2)
-            #   Look up by even_xor
-            # 0-2 => Four of a kind with pair (2,4)
-            #   Look up by prime product
-        
-            # Any time you can't disambiguate 2/4 or 1/3, use primes.
-            # We also assume you can count bits or determine a power of two.
-            # (see PopCount class.)
-            
-            if even_xor == 0: # x-0
-                odd_popcount = PopCount.popcount(odd_xor)
-                if odd_popcount == 4: # 4-0
-                    prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
-                    return LookupTables.Six.prime_products_to_rank[prime_product]
-                else: # 6-0, 2-0
-                    return LookupTables.Six.odd_xors_to_rank[odd_xor]
-            elif odd_xor == 0: # 0-x
-                even_popcount = PopCount.popcount(even_xor)
-                if even_popcount == 2: # 0-2
-                    prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
-                    return LookupTables.Six.prime_products_to_rank[prime_product]
-                else: # 0-3
-                    return LookupTables.Six.even_xors_to_rank[even_xor]
-            else: # odd_popcount is 4 or 2
-                odd_popcount = PopCount.popcount(odd_xor)
-                if odd_popcount == 4: # 4-1
-                    return LookupTables.Six.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
-                else: # 2-x
-                    even_popcount = PopCount.popcount(even_xor)
-                    if even_popcount == 2: # 2-2
-                        return LookupTables.Six.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
-                    else: # 2-1
-                        prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
-                        return LookupTables.Six.prime_products_to_rank[prime_product]
-
-        card_to_binary = staticmethod(card_to_binary)
-        card_to_binary_lookup = staticmethod(card_to_binary_lookup)
-        evaluate_rank = staticmethod(evaluate_rank)
-    
-    class Seven:
-        def card_to_binary(card):
-            """
-            Convert the pokerbots.engine.game.Card representation to a binary
-            representation for use in 7-card hand evaluation
-            """
-            # Same as for 6 cards
-            b_mask = 1 << (14 + card.rank)
-            q_mask = LookupTables.primes[card.suit - 1] << 12
-            r_mask = (card.rank - 2) << 8
-            p_mask = LookupTables.primes[card.rank - 2]
-            return b_mask | q_mask | r_mask | p_mask
-
-        def card_to_binary_lookup(card):
-            return LookupTables.Seven.card_to_binary[card.rank][card.suit]
-        
-        def evaluate_rank(hand):
-            """
-            Return the rank amongst all possible 5-card hands of any kind
-            using the best 5-card hand from the given 6-card hand.
-            """
-            # bh stands for binary hand, map to that representation
-            card_to_binary = HandEvaluator.Seven.card_to_binary_lookup
-            bh = map(card_to_binary, hand)
-        
-            # Use a lookup table to determine if it's a flush as with 6 cards
-            flush_prime = reduce(mul, map(lambda card: (card >> 12) & 0xF, bh))
-            flush_suit = False
-            if flush_prime in LookupTables.Seven.prime_products_to_flush:
-                flush_suit = LookupTables.Seven.prime_products_to_flush[flush_prime]
-        
-            # Now use ranks to determine hand via lookup
-            odd_xor = reduce(__xor__, bh) >> 16
-            even_xor = (reduce(__or__, bh) >> 16) ^ odd_xor
-
-            if flush_suit:
-                # There will be 0-2 cards not in the right suit
-                even_popcount = PopCount.popcount(even_xor)
-                if even_xor == 0:
-                    # TODO: There might be a faster way?
-                    bits = reduce(__or__, map(
-                        lambda card: (card >> 16),
-                        filter(
-                            lambda card: (card >> 12) & 0xF == flush_suit, bh)))
-                    return LookupTables.Seven.flush_rank_bits_to_rank[bits]
-                else:
-                    if even_popcount == 2:
-                        return LookupTables.Seven.flush_rank_bits_to_rank[odd_xor | even_xor]
-                    else:
-                        bits = reduce(__or__, map(
-                            lambda card: (card >> 16),
-                            filter(
-                                lambda card: (card >> 12) & 0xF == flush_suit, bh)))
-                        return LookupTables.Seven.flush_rank_bits_to_rank[bits]
-            
-            # Odd-even XOR again, see Six.evaluate_rank for details
-            # 7 is odd, so you have to have an odd number of bits in odd_xor
-            # 7-0 => (1,1,1,1,1,1,1) - High card
-            # 5-1 => (1,1,1,1,1,2) - Pair
-            # 5-0 => (1,1,1,1,3) - Trips
-            # 3-2 => (1,1,1,2,2) - Two pair
-            # 3-1 => (1,1,1,4) or (1,1,3,2) - Quads or full house
-            # 3-0 => (1,3,3) - Full house
-            # 1-3 => (1,2,2,2) - Two pair
-            # 1-2 => (1,2,4) or (3,2,2) - Quads or full house
-            # 1-1 => (3,4) - Quads
-            
-            if even_xor == 0: # x-0                
-                odd_popcount = PopCount.popcount(odd_xor)
-                if odd_popcount == 7: # 7-0
-                    return LookupTables.Seven.odd_xors_to_rank[odd_xor]
-                else: # 5-0, 3-0
-                    prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
-                    return LookupTables.Seven.prime_products_to_rank[prime_product]
-            else:
-                odd_popcount = PopCount.popcount(odd_xor)
-                if odd_popcount == 5: # 5-1
-                    return LookupTables.Seven.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
-                elif odd_popcount == 3:
-                    even_popcount = PopCount.popcount(even_xor)
-                    if even_popcount == 2: # 3-2
-                        return LookupTables.Seven.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
-                    else: # 3-1
-                        prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
-                        return LookupTables.Seven.prime_products_to_rank[prime_product]
-                else:
-                    even_popcount = PopCount.popcount(even_xor)
-                    if even_popcount == 3: # 1-3
-                        return LookupTables.Seven.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
-                    elif even_popcount == 2: # 1-2
-                        prime_product = reduce(mul, map(lambda card: card & 0xFF, bh))
-                        return LookupTables.Seven.prime_products_to_rank[prime_product]
-                    else: # 1-1
-                        return LookupTables.Seven.even_xors_to_odd_xors_to_rank[even_xor][odd_xor]
-        card_to_binary = staticmethod(card_to_binary)
-        card_to_binary_lookup = staticmethod(card_to_binary_lookup)
-        evaluate_rank = staticmethod(evaluate_rank)
-
-    # These are the main functions
-    def evaluate_hand(hand, board=[]):
-        """
-        Return the percentile of the best 5 card hand made from these
-        cards, against an equivalent number of cards.
-        """
-        
-        cards = list(hand) + list(board)
-        if len(cards) == 2:
-            return HandEvaluator.Two.evaluate_percentile(hand)
-        elif len(cards) == 5:
-            evaluator = HandEvaluator.Five
-        elif len(cards) == 6:
-            evaluator = HandEvaluator.Six
-        elif len(cards) == 7:
-            evaluator = HandEvaluator.Seven
+                return HandEvaluator.preflop_win_percentages_unsuited[hand[0].rank][hand[1].rank]
         else:
-            # wrong number of cards
-            return 0
-
-        # Default values in case we screw up
-        rank = 7463
-        percentile = 0.0
+            hand = map(HandEvaluator.card_to_str, hand)
+            board = map(HandEvaluator.card_to_str, board)
+            # Fill the rest of the board with 255s (unknown card)
+            for i in xrange(5 - len(board)):
+                board.append(255)
+            poker_eval_result = HandEvaluator.evaluator.poker_eval(game="holdem",
+                pockets=[hand, [255,255]], dead=[],
+                board=board,
+                iterations=iterations)
         
-        rank = evaluator.evaluate_rank(cards)
-        possible_opponent_hands = list(combinations(LookupTables.deck - set(cards), 2))
-        hands_beaten = 0
-        for h in possible_opponent_hands:
-            possible_opponent_rank = evaluator.evaluate_rank(list(h) + board)
-            if rank < possible_opponent_rank:
-                # you beat this hand
-                hands_beaten += 1
-            elif rank == possible_opponent_rank:
-                hands_beaten += 0.5
-        return float(hands_beaten) / len(list(possible_opponent_hands))
+        # Ok, we have stats. Calculate win pct, with ties as 0.5 weight
+        return (poker_eval_result['eval'][0]['winhi'] + \
+                0.5 * poker_eval_result['eval'][0]['tiehi']) / \
+                float(poker_eval_result['info'][0])
 
+    card_to_str = staticmethod(card_to_str)
+    str_to_card = staticmethod(str_to_card)
     evaluate_hand = staticmethod(evaluate_hand)

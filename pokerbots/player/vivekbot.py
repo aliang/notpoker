@@ -1,13 +1,11 @@
-from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
+from pokerbots.engine.game import Raise, Check, Call, Bet, Fold, Post, Deal, Show, Card
 from random import randint
 from hand_evaluator import HandEvaluator
+from numpy import *
 
 class VivekBot:
     def __init__(self,param1=0.5,param2=1):
-        """
-        This bot is currently MasterChef50, but using Alvin's fast hand
-        evaluator. It plays 50 games against itself in under 3 seconds.
-        """
+
         self.debug=True;
         
         # my name
@@ -37,6 +35,7 @@ class VivekBot:
         self.potodds_ratio = param1 # how strongly our betting depends on hand strength
         self.slow_play_threshold = param2 # minimum hand percentile before we reduce our bet strength (slow play)
         self.opponent_bet_history = zeros(0)
+        self.opponent_hand_strength = 0
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
@@ -57,6 +56,7 @@ class VivekBot:
             print('self.board',self.board)
             print('self.legal',self.legal)
             print('self.pot',self.pot)
+
             
         if self.hands_played != self.hand_counter:
             self.hand_counter = self.hands_played
@@ -175,7 +175,7 @@ class VivekBot:
         """
         Returns an action after the flop, based on the table and the player
         """
-        x = self.percentiles['preflop']
+        x = self.percentiles['flop']
         A = self.potodds_ratio
         s = self.slow_play_threshold
 
@@ -348,24 +348,47 @@ class VivekBot:
                         opponent_bet_for_round = self_bet_for_round
                     elif isinstance(play[1],Check):
                         strength_of_bet = 0.0
+                        a = 1
                     elif isinstance(play[1],Show):
                         opponent_ranks = array([play[1].hand[0].rank,play[1].hand[1].rank])
                         opponent_suits = array([play[1].hand[0].suit,play[1].hand[1].suit])
-                        strength_of_hand = self.percentile_of_hand(opponent_ranks,opponent_suits,
-                                                                   community_ranks,community_suits)
-
-                        HandEvaluator.evaluate_hand(play[1].hand, self.board.cards)
+                        #print play[1].hand
+                        #print last_board
+                        self.opponent_hand_strength = HandEvaluator.evaluate_hand(play[1].hand,last_board)
+                        print self.opponent_hand_strength
                         
-                        #print strength_of_hand
                     self.opponent_bet_history = append(self.opponent_bet_history,strength_of_bet)
-                    #print 'mean'
-                    #print mean(self.opponent_bet_history)
-                    #print 'std'
-                    #print std(self.opponent_bet_history)
+                   
                 elif play[0] == 'Dealer':
-                    # Determine what the cards are if all five are out -- prepare for showdown
-                    if len(play[1].cards) == 20:
-                        community_ranks = append(community_ranks,self.parse_ranks(play[1].cards))
-                        community_suits = append(community_suits,self.parse_suits(play[1].cards))                            
+
                     self_bet_for_round = 0
                     opponent_bet_for_round = 0
+                    
+                    if len(play[1].cards) == 20:
+                        card_string = play[1].cards
+                        last_board_string = play[1].cards
+                        last_board = []
+                        for i in xrange(0,5):
+                            str_pos = 4*i+1
+                            if card_string[str_pos] == 'A':
+                                card_rank = 14
+                            elif card_string[str_pos] == 'K':
+                                card_rank = 13
+                            elif card_string[str_pos] == 'Q':
+                                card_rank = 12
+                            elif card_string[str_pos] == 'J':
+                                card_rank = 11
+                            elif card_string[str_pos] == 'T':
+                                card_rank = 10
+                            else:
+                                card_rank = int(card_string[str_pos])
+                            str_pos = 4*i+2
+                            if card_string[str_pos] == 's':
+                                card_suit = 1
+                            elif card_string[str_pos] == 'h':
+                                card_suit = 2
+                            elif card_string[str_pos] == 'd':
+                                card_suit = 3
+                            elif card_string[str_pos] == 'c':
+                                card_suit = 4
+                            last_board.append(Card(card_rank,card_suit))
