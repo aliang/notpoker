@@ -111,7 +111,7 @@ class HandEvaluator:
         else:
             hand = map(HandEvaluator.card_to_str, hand)
             board = map(HandEvaluator.card_to_str, board)
-            # Fill the rest of the board with 255s
+            # Fill the rest of the board with 255s (unknown card)
             for i in xrange(5 - len(board)):
                 board.append(255)
             poker_eval_result = HandEvaluator.evaluator.poker_eval(game="holdem",
