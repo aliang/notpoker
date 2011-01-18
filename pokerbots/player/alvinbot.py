@@ -46,18 +46,19 @@ class AlvinBot:
         # self.hand_history.append(self.last)
         
         # see other templates for a modular way of determining an action
+        
         if not self.board.board:
-            self.percentiles['preflop'] = HandEvaluator.evaluate_preflop_hand(self.hand)
+            self.percentiles['preflop'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
             return self.preflop_strategy()
         elif self.board:
             if len(self.board.board) == 3:
-                self.percentiles['flop'] = HandEvaluator.evaluate_hand(self.hand + self.board.cards)
+                self.percentiles['flop'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
                 return Check()
             elif len(self.board.board) == 4:
-                self.percentiles['turn'] = HandEvaluator.evaluate_hand(self.hand + self.board.cards)
+                self.percentiles['turn'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
                 return Check()
             elif len(self.board.board) == 5:
-                self.percentiles['river'] = HandEvaluator.evaluate_hand(self.hand + self.board.cards)
+                self.percentiles['river'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
                 return Check()
         
         return Check()
