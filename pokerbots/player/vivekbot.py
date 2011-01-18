@@ -4,9 +4,9 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class VivekBot:
-    def __init__(self,param1=0.5,param2=1):
+    def __init__(self,param1=0.5,param2=0.9):
 
-        self.debug=True;
+        self.debug=True
         
         # my name
         self.name = "VivekBot"
@@ -99,9 +99,9 @@ class VivekBot:
         A = self.potodds_ratio
         s = self.slow_play_threshold
 
-        if x <= s
+        if x <= s:
             value_bet = int(round((A*x)/(s-A*x)*self.pot))
-        elif x < 1
+        elif x < 1:
             value_bet = int(round(A*(1-x)/((s-1)-A*(1-x))*self.pot))
 
         value_call = int(round((A*x)/(1-A*x)*self.pot))
@@ -173,22 +173,23 @@ class VivekBot:
         
     def flop_strategy(self):
         """
-        Returns an action after the flop, based on the table and the player
+        Returns an action before the flop, based on the table and the player
         """
         x = self.percentiles['flop']
         A = self.potodds_ratio
         s = self.slow_play_threshold
 
-        if x <= s
+        if x <= s:
             value_bet = int(round((A*x)/(s-A*x)*self.pot))
-        else
+        elif x < 1:
             value_bet = int(round(A*(1-x)/((s-1)-A*(1-x))*self.pot))
 
         value_call = int(round((A*x)/(1-A*x)*self.pot))
         
+
         for action in self.legal:
             if isinstance(action, Bet):
-                if flop_percentile < 1:
+                if x < 1:
                     if value_bet >= self.stack:
                         if self.debug:
                             print('Going All In, betting ',self.stack)
@@ -205,102 +206,209 @@ class VivekBot:
                             ok = raw_input('press enter\n')
                         return Check()
                 else:
+                    if self.debug:
+                        print('Going All In, betting ',self.stack)
+                        ok = raw_input('press enter\n')
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = pot_size - 2 * self.pip
-                if flop_percentile < 1:
+                chips_to_add = self.opponent['pip'] - self.pip
+                if x < 1:
                     if value_bet >= self.stack:
-                        return Raise(self.stack + self.pip)
+                        if value_bet <= chips_to_add:
+                            if self.debug:
+                                print('Calling to go all-in')
+                                ok = raw_input('press enter\n')
+                            return Call()
+                        else:
+                            if self.debug:
+                                print('Raising to go all-in.  Raising to ',self.stack + self.pip)
+                                ok = raw_input('press enter\n')
+                            return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
+                        if self.debug:
+                            print('Raising to ',value_bet + self.pip)
+                            ok = raw_input('press enter\n')
                         return Raise(value_bet + self.pip)
-                    elif value_bet >= chips_to_add:
+                    elif value_call >= chips_to_add:
+                        if self.debug:
+                            print('Calling')
+                            ok = raw_input('press enter\n')
                         return Call()
                     else:
+                        if self.debug:
+                            print('Folding')
+                            ok = raw_input('press enter\n')
                         return Fold()
                 else:
+                    if self.debug:
+                        print('Going all-in, raising to ',self.stack + self.pip)
+                        ok = raw_input('press enter\n')
                     return Raise(self.stack + self.pip) # go all-in
 
         # if something screws up, try checking
+        if self.debug:
+            print('Something screwed up, so we are checking')
+            ok = raw_input('press enter\n')
         return Check()
 
     def turn_strategy(self):
         """
-        Returns an action after the turn, based on the table and the player
+        Returns an action before the flop, based on the table and the player
         """
-        # This calls Zach's turn evaluator
-        turn_percentile = self.percentiles['turn']
+        x = self.percentiles['turn']
+        A = self.potodds_ratio
+        s = self.slow_play_threshold
 
-        potodds_ratio = self.potodds_ratio
-        pot_size = self.pot
+        if x <= s:
+            value_bet = int(round((A*x)/(s-A*x)*self.pot))
+        elif x < 1:
+            value_bet = int(round(A*(1-x)/((s-1)-A*(1-x))*self.pot))
+
+        value_call = int(round((A*x)/(1-A*x)*self.pot))
+        
 
         for action in self.legal:
             if isinstance(action, Bet):
-                if turn_percentile < 1:
-                    value_bet = int(round(potodds_ratio * turn_percentile * pot_size / (1 - turn_percentile)))
+                if x < 1:
                     if value_bet >= self.stack:
+                        if self.debug:
+                            print('Going All In, betting ',self.stack)
+                            ok = raw_input('press enter\n')
                         return Bet(self.stack)
                     elif value_bet > 0:
+                        if self.debug:
+                            print('Betting ',value_bet)
+                            ok = raw_input('press enter\n')
                         return Bet(value_bet)
                     else:
+                        if self.debug:
+                            print('Checking because value_bet=',value_bet)
+                            ok = raw_input('press enter\n')
                         return Check()
                 else:
+                    if self.debug:
+                        print('Going All In, betting ',self.stack)
+                        ok = raw_input('press enter\n')
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = pot_size - 2 * self.pip
-                if turn_percentile < 1:
-                    value_bet = int(round(potodds_ratio * turn_percentile * pot_size / (1 - turn_percentile)))
+                chips_to_add = self.opponent['pip'] - self.pip
+                if x < 1:
                     if value_bet >= self.stack:
-                        return Raise(self.stack + self.pip)
+                        if value_bet <= chips_to_add:
+                            if self.debug:
+                                print('Calling to go all-in')
+                                ok = raw_input('press enter\n')
+                            return Call()
+                        else:
+                            if self.debug:
+                                print('Raising to go all-in.  Raising to ',self.stack + self.pip)
+                                ok = raw_input('press enter\n')
+                            return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
+                        if self.debug:
+                            print('Raising to ',value_bet + self.pip)
+                            ok = raw_input('press enter\n')
                         return Raise(value_bet + self.pip)
-                    elif value_bet >= chips_to_add:
+                    elif value_call >= chips_to_add:
+                        if self.debug:
+                            print('Calling')
+                            ok = raw_input('press enter\n')
                         return Call()
                     else:
+                        if self.debug:
+                            print('Folding')
+                            ok = raw_input('press enter\n')
                         return Fold()
                 else:
+                    if self.debug:
+                        print('Going all-in, raising to ',self.stack + self.pip)
+                        ok = raw_input('press enter\n')
                     return Raise(self.stack + self.pip) # go all-in
 
         # if something screws up, try checking
+        if self.debug:
+            print('Something screwed up, so we are checking')
+            ok = raw_input('press enter\n')
         return Check()
 
     def river_strategy(self):
         """
-        Returns an action after the river, based on the table and the player
+        Returns an action before the flop, based on the table and the player
         """
-        # This calls Zach's river evaluator
-        river_percentile = self.percentiles['river']
+        x = self.percentiles['river']
+        A = self.potodds_ratio
+        s = self.slow_play_threshold
 
-        potodds_ratio = self.potodds_ratio
-        pot_size = self.pot
+        if x <= s:
+            value_bet = int(round((A*x)/(s-A*x)*self.pot))
+        elif x < 1:
+            value_bet = int(round(A*(1-x)/((s-1)-A*(1-x))*self.pot))
+
+        value_call = int(round((A*x)/(1-A*x)*self.pot))
+        
 
         for action in self.legal:
             if isinstance(action, Bet):
-                if river_percentile < 1:
-                    value_bet = int(round(potodds_ratio * river_percentile * pot_size / (1 - river_percentile)))
+                if x < 1:
                     if value_bet >= self.stack:
+                        if self.debug:
+                            print('Going All In, betting ',self.stack)
+                            ok = raw_input('press enter\n')
                         return Bet(self.stack)
                     elif value_bet > 0:
+                        if self.debug:
+                            print('Betting ',value_bet)
+                            ok = raw_input('press enter\n')
                         return Bet(value_bet)
                     else:
+                        if self.debug:
+                            print('Checking because value_bet=',value_bet)
+                            ok = raw_input('press enter\n')
                         return Check()
                 else:
+                    if self.debug:
+                        print('Going All In, betting ',self.stack)
+                        ok = raw_input('press enter\n')
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = pot_size - 2 * self.pip
-                if river_percentile < 1:
-                    value_bet = int(round(potodds_ratio * river_percentile * pot_size / (1 - river_percentile)))
+                chips_to_add = self.opponent['pip'] - self.pip
+                if x < 1:
                     if value_bet >= self.stack:
-                        return Raise(self.stack + self.pip)
+                        if value_bet <= chips_to_add:
+                            if self.debug:
+                                print('Calling to go all-in')
+                                ok = raw_input('press enter\n')
+                            return Call()
+                        else:
+                            if self.debug:
+                                print('Raising to go all-in.  Raising to ',self.stack + self.pip)
+                                ok = raw_input('press enter\n')
+                            return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
+                        if self.debug:
+                            print('Raising to ',value_bet + self.pip)
+                            ok = raw_input('press enter\n')
                         return Raise(value_bet + self.pip)
-                    elif value_bet >= chips_to_add:
+                    elif value_call >= chips_to_add:
+                        if self.debug:
+                            print('Calling')
+                            ok = raw_input('press enter\n')
                         return Call()
                     else:
+                        if self.debug:
+                            print('Folding')
+                            ok = raw_input('press enter\n')
                         return Fold()
                 else:
+                    if self.debug:
+                        print('Going all-in, raising to ',self.stack + self.pip)
+                        ok = raw_input('press enter\n')
                     return Raise(self.stack + self.pip) # go all-in
 
         # if something screws up, try checking
+        if self.debug:
+            print('Something screwed up, so we are checking')
+            ok = raw_input('press enter\n')
         return Check()
 
 
