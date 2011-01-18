@@ -3,19 +3,21 @@ from random import randint
 from hand_evaluator import HandEvaluator
 
 class VivekBot:
-    def __init__(self):
+    def __init__(self,param1=0.5,param2=1):
         """
         This bot is currently MasterChef50, but using Alvin's fast hand
         evaluator. It plays 50 games against itself in under 3 seconds.
         """
+        self.debug=True;
+        
         # my name
         self.name = "VivekBot"
         # to keep hand_history
         self.hand_counter = 0
         # to store percentiles for this hand
         self.percentiles = {}
-        # to store best estimates of opponent's percentiles
-        self.opponent_percentiles = {}
+
+        
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -32,7 +34,8 @@ class VivekBot:
         self.legal = None # list of allowed actions, e.g. [Raise(8), Call(), Fold()]
 
         # state variables
-        self.potodds_ratio = 0.5
+        self.potodds_ratio = param1 # how strongly our betting depends on hand strength
+        self.slow_play_threshold = param2 # minimum hand percentile before we reduce our bet strength (slow play)
         self.opponent_bet_history = zeros(0)
 
     def respond(self):
@@ -40,9 +43,8 @@ class VivekBot:
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
-        debug=True;
 
-        if debug:
+        if self.debug:
             print(self.name)
             print('self.hand',self.hand)
             print('self.stack',self.stack)
@@ -55,7 +57,6 @@ class VivekBot:
             print('self.board',self.board)
             print('self.legal',self.legal)
             print('self.pot',self.pot)
-            ok = raw_input('press enter\n');
             
         if self.hands_played != self.hand_counter:
             self.hand_counter = self.hands_played
@@ -94,67 +95,120 @@ class VivekBot:
         """
         Returns an action before the flop, based on the table and the player
         """
-        preflop_percentile = self.percentiles['preflop']
+        x = self.percentiles['preflop']
+        A = self.potodds_ratio
+        s = self.slow_play_threshold
 
-        potodds_ratio = self.potodds_ratio
-        pot_size = self.pot
+        if x <= s
+            value_bet = int(round((A*x)/(s-A*x)*self.pot))
+        elif x < 1
+            value_bet = int(round(A*(1-x)/((s-1)-A*(1-x))*self.pot))
+
+        value_call = int(round((A*x)/(1-A*x)*self.pot))
+        
 
         for action in self.legal:
             if isinstance(action, Bet):
-                if preflop_percentile < 1:
-                    value_bet = int(round(potodds_ratio * preflop_percentile * pot_size / (1 - preflop_percentile)))
+                if x < 1:
                     if value_bet >= self.stack:
+                        if self.debug:
+                            print('Going All In, betting ',self.stack)
+                            ok = raw_input('press enter\n')
                         return Bet(self.stack)
                     elif value_bet > 0:
+                        if self.debug:
+                            print('Betting ',value_bet)
+                            ok = raw_input('press enter\n')
                         return Bet(value_bet)
                     else:
+                        if self.debug:
+                            print('Checking because value_bet=',value_bet)
+                            ok = raw_input('press enter\n')
                         return Check()
                 else:
+                    if self.debug:
+                        print('Going All In, betting ',self.stack)
+                        ok = raw_input('press enter\n')
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = pot_size - 2 * self.pip
-                if preflop_percentile < 1:
-                    value_bet = int(round(potodds_ratio * preflop_percentile * pot_size / (1 - preflop_percentile)))
+                chips_to_add = self.opponent['pip'] - self.pip
+                if x < 1:
                     if value_bet >= self.stack:
-                        return Raise(self.stack + self.pip)
+                        if value_bet <= chips_to_add:
+                            if self.debug:
+                                print('Calling to go all-in')
+                                ok = raw_input('press enter\n')
+                            return Call()
+                        else:
+                            if self.debug:
+                                print('Raising to go all-in.  Raising to ',self.stack + self.pip)
+                                ok = raw_input('press enter\n')
+                            return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
+                        if self.debug:
+                            print('Raising to ',value_bet + self.pip)
+                            ok = raw_input('press enter\n')
                         return Raise(value_bet + self.pip)
-                    elif value_bet >= chips_to_add:
+                    elif value_call >= chips_to_add:
+                        if self.debug:
+                            print('Calling')
+                            ok = raw_input('press enter\n')
                         return Call()
                     else:
+                        if self.debug:
+                            print('Folding')
+                            ok = raw_input('press enter\n')
                         return Fold()
                 else:
+                    if self.debug:
+                        print('Going all-in, raising to ',self.stack + self.pip)
+                        ok = raw_input('press enter\n')
                     return Raise(self.stack + self.pip) # go all-in
 
         # if something screws up, try checking
+        if self.debug:
+            print('Something screwed up, so we are checking')
+            ok = raw_input('press enter\n')
         return Check()
         
     def flop_strategy(self):
         """
         Returns an action after the flop, based on the table and the player
         """
-        # This calls Zach's flop evaluator
-        flop_percentile = self.percentiles['flop']
+        x = self.percentiles['preflop']
+        A = self.potodds_ratio
+        s = self.slow_play_threshold
 
-        potodds_ratio = self.potodds_ratio
-        pot_size = self.pot
+        if x <= s
+            value_bet = int(round((A*x)/(s-A*x)*self.pot))
+        else
+            value_bet = int(round(A*(1-x)/((s-1)-A*(1-x))*self.pot))
 
+        value_call = int(round((A*x)/(1-A*x)*self.pot))
+        
         for action in self.legal:
             if isinstance(action, Bet):
                 if flop_percentile < 1:
-                    value_bet = int(round(potodds_ratio * flop_percentile * pot_size / (1 - flop_percentile)))
                     if value_bet >= self.stack:
+                        if self.debug:
+                            print('Going All In, betting ',self.stack)
+                            ok = raw_input('press enter\n')
                         return Bet(self.stack)
                     elif value_bet > 0:
+                        if self.debug:
+                            print('Betting ',value_bet)
+                            ok = raw_input('press enter\n')
                         return Bet(value_bet)
                     else:
+                        if self.debug:
+                            print('Checking because value_bet=',value_bet)
+                            ok = raw_input('press enter\n')
                         return Check()
                 else:
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
                 chips_to_add = pot_size - 2 * self.pip
                 if flop_percentile < 1:
-                    value_bet = int(round(potodds_ratio * flop_percentile * pot_size/(1 - flop_percentile)))
                     if value_bet >= self.stack:
                         return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
