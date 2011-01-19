@@ -1,9 +1,8 @@
 from pokerbots.engine.game import Table
 from pokerbots.player.pokerbot import Pokerbot
-from pokerbots.player.vivekbot import vivekbot
 import time
 
-p1 = Pokerbot('Template')
+p1 = Pokerbot('vivekbot')
 p2 = Pokerbot('vivekbot')
 
 num_matches = 100
