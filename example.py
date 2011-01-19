@@ -1,8 +1,7 @@
 from pokerbots.engine.game import Table
 from pokerbots.player.pokerbot import Pokerbot
+from pokerbots.player.vivekbot import vivekbot
 import time
-import sys
-sys.path.append('pokerbots\player\\vivekbot')
 
 p1 = Pokerbot('Template')
 p2 = Pokerbot('vivekbot')
