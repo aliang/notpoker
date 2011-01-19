@@ -3,7 +3,7 @@ from random import randint
 from hand_evaluator import HandEvaluator
 from numpy import zeros
 
-def VivekBotGenerator(param1=0.9, param2=1, param3=0, param4=0.1):
+def VivekBotClassFactory(param1=0.9, param2=1, param3=0, param4=0.1):
     class VivekBot:
         def __init__(self):
 
@@ -322,5 +322,7 @@ def VivekBotGenerator(param1=0.9, param2=1, param3=0, param4=0.1):
             pass
 
     return VivekBot
-    
-vivekbot = VivekBotGenerator()
+
+# name of variable must be same as name of module
+# pass your parameters to this function that acts as a class factory    
+vivekbot = VivekBotClassFactory()
