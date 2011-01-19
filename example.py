@@ -2,6 +2,8 @@ from pokerbots.engine.game import Table
 from pokerbots.player.pokerbot import Pokerbot
 import time
 
+# need to create a module name botname.botname containing the correct code.
+# it's hardcoded sadly
 p1 = Pokerbot('vivekbot')
 p2 = Pokerbot('vivekbot')
 

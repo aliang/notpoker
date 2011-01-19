@@ -1,7 +1,7 @@
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
 from random import randint
 from hand_evaluator import HandEvaluator
-from numpy import *
+from numpy import zeros
 
 def VivekBotGenerator(param1=0.9, param2=1, param3=0, param4=0.1):
     class VivekBot:
