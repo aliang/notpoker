@@ -4,9 +4,10 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class vivekbot:
-    def __init__(self, param1=0.9, param2=1, param3=0, param4=0.1):
+    def __init__(self, param1=0.5, param2=1, param3=1, param4=0.2):
 
         self.debug=False
+        self.unlimited=True
         
         # my name
         self.name = "vivekbot"
@@ -34,7 +35,6 @@ class vivekbot:
         self.last = None
         self.pot = None
         self.time = None
-        self.unlimited = True
 
         #
         # custom state variables
@@ -61,6 +61,7 @@ class vivekbot:
         
         self.opponent_bet_history = zeros(0)
         self.opponent_hand_strength = 0
+        self.opponent_previous_pip = 0
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
@@ -99,20 +100,32 @@ class vivekbot:
         if not self.board.board:
             if 'preflop' not in self.percentiles:
                 self.percentiles['preflop'] = HandEvaluator.evaluate_hand(self.hand)
-            return self.strategy(1, self.percentiles['preflop'])
+                if self.debug:
+                    print('preflop percentile ',self.percentiles['preflop'])
+                self.opponent_previous_pip=0
+            return self.strategy(2, self.percentiles['preflop'])
         elif self.board:
             if len(self.board.board) == 3:
                 if 'flop' not in self.percentiles:
                     self.percentiles['flop'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
-                return self.strategy(2, self.percentiles['flop'])
+                    if self.debug:
+                        print('flop percentile ',self.percentiles['flop'])
+                        self.opponent_previous_pip=0
+                return self.strategy(3, self.percentiles['flop'])
             elif len(self.board.board) == 4:
                 if 'turn' not in self.percentiles:
                     self.percentiles['turn'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
-                return self.strategy(3, self.percentiles['turn'])
+                    if self.debug:
+                        print('turn percentile ',self.percentiles['turn'])
+                        self.opponent_previous_pip=0
+                return self.strategy(4, self.percentiles['turn'])
             elif len(self.board.board) == 5:
                 if 'river' not in self.percentiles:
                     self.percentiles['river'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
-                return self.strategy(4, self.percentiles['river'])
+                    if self.debug:
+                        print('river percentile ',self.percentiles['river'])
+                        self.opponent_previous_pip=0
+                return self.strategy(5, self.percentiles['river'])
 
         if self.debug:
             print('Something screwed up, so we are checking (1)')
@@ -127,14 +140,33 @@ class vivekbot:
         A = self.potodds_ratio_fixed*(1-self.p3) + self.potodds_ratio_variable*self.p3
         s = self.slow_play_threshold
 
-        if x < s:
-            value_bet = int(round((A*x)/(s-A*x)*self.pot))
+        if x <= s:
+            alpha = A*x/s
         elif x < 1:
-            value_bet = int(round(A*(1-x)/((s-1)-A*(1-x))*self.pot))
+            alpha = A*(1-x)/(1-s)
 
-        value_call = int(round((A*x)/(1-A*x)*self.pot))
+        if alpha < 1:
+            value_bet = int(round(alpha/(1-alpha)*self.pot))
+        else:
+            value_bet = self.stack
+
+        alphacall = A*x
+
+        if alphacall < 1:
+            value_call = int(round(alphacall/(1-alphacall)*self.pot))
+        else:
+            value_call = self.stack
+        """
+        print('self.hand ',self.hand)
+        print('x ',x)
+        print('alpha ',alpha)
+        print('value_call ',value_call)
+        """
+
+
+        self.opponent_potodds_estimate = 2*(self.opponent['pip']-self.opponent_previous_pip)/self.pot
+        self.opponent_previous_pip = self.opponent['pip']
         
-
         for action in self.legal:
             if isinstance(action, Bet):
                 if x < 1:
@@ -159,11 +191,10 @@ class vivekbot:
                         ok = raw_input('press enter\n')
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet
-                opponent_potodds_estimate = 2*chips_to_add/self.pot
+                chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet              
                     #for us, this is uniform on [0, 2*self.potodds_ratio]
                 self.potodds_ratio_variable = ((1-self.p4)*self.potodds_ratio_variable +
-                                               self.p4*opponent_potodds_estimate)
+                                               self.p4*self.opponent_potodds_estimate)
                 if x < 1:
                     if value_bet >= self.stack:
                         if value_bet <= chips_to_add:
@@ -198,10 +229,9 @@ class vivekbot:
                     return Raise(self.stack + self.pip) # go all-in
             elif isinstance(action, Call): #only options are calling and folding
                 chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet
-                opponent_potodds_estimate = 2*chips_to_add/self.pot
                     #for us, this is uniform on [0, 2*self.potodds_ratio]
                 self.potodds_ratio_variable = ((1-self.p4)*self.potodds_ratio_variable +
-                                               self.p4*opponent_potodds_estimate)
+                                               self.p4*self.opponent_potodds_estimate)
                 if x < 1:
                     if value_call >= chips_to_add:
                         if self.debug:
@@ -320,4 +350,9 @@ class vivekbot:
         """Reset accepts a boolean indicating whether you won a match and
         provides the last hand if you want to update any statistics from it
         """
+        self.hand_counter = self.hands_played
+        # reset stuff
+        self.percentiles = {}
+        self.opponent_percentiles = {}
+        #self.evaluate_opponent()
         pass

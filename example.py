@@ -7,7 +7,7 @@ sys.path.append('pokerbots\player\\vivekbot')
 p1 = Pokerbot('Template')
 p2 = Pokerbot('vivekbot')
 
-num_matches = 100
+num_matches = 1000
 
 for i in range(num_matches):
     t = Table(p1, p2)
