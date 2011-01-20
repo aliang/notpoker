@@ -1,5 +1,5 @@
 # Spartan 117: Master Chef
-# Team members: Zach Wissner-Gross (zachwg), Jen Balakrishnan (jenb)
+# Team members: Zach Wissner-Gross (xaq), Jen Balakrishnan (jenb)
 
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
 from random import randint
