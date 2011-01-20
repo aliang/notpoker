@@ -1,9 +1,10 @@
 from pokerbots.engine.game import Table
 from pokerbots.player.pokerbot import Pokerbot
 import time
+import sys
 
 p1_name = 'masterchefA'
-p2_name = 'testchef'
+p2_name = sys.argv[1]
 p1_wins = 0
 p2_wins = 0
 p1 = Pokerbot(p1_name)
