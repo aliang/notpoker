@@ -140,7 +140,10 @@ class masterchefA:
 
         if x <= s:
             alpha = A*x/s
-        elif x < 1:
+        elif x <= 1.0:
+            alpha = A*(1-x)/(1-s)
+        else:
+            # yeah it's the same, but this is just to catch an edge case
             alpha = A*(1-x)/(1-s)
 
         if alpha < 1:
