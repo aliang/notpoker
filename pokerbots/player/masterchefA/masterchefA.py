@@ -358,4 +358,3 @@ class masterchefA:
         self.percentiles = {}
         self.opponent_percentiles = {}
         #self.evaluate_opponent()
-        pass
