@@ -5,7 +5,8 @@ import sys
 
 test_opponent_names = [
     'Template',
-    'masterchefA'
+    'masterchefA',
+    'masterchefB'
 ]
 
 for p1_name in test_opponent_names:
