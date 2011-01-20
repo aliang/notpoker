@@ -1,14 +1,13 @@
-# Spartan 117: Master Chef
-# Team members: Zach Wissner-Gross (zachwg), Jen Balakrishnan (jenb)
-
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
 from random import randint
 from hand_evaluator import HandEvaluator
+from numpy import *
 
 class masterchef:
-    def __init__(self, param1=0.5, param2=1.0, param3=1.0, param4=0.1): 
-        self.debug = False
-        # self.unlimited = True
+    def __init__(self, param1=0.7, param2=1, param3=0, param4=0.5):
+
+        self.debug=False
+        self.unlimited=True
         
         # my name
         self.name = "masterchef"
@@ -16,6 +15,8 @@ class masterchef:
         self.hand_counter = 0
         # to store percentiles for this hand
         self.percentiles = {}
+
+        
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -58,7 +59,7 @@ class masterchef:
         # how long we integrate opponent bet strength:
         # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
         
-        self.opponent_bet_history = []
+        self.opponent_bet_history = zeros(0)
         self.opponent_hand_strength = 0
         self.opponent_previous_pip = 0
 
@@ -141,13 +142,8 @@ class masterchef:
 
         if x <= s:
             alpha = A*x/s
-        elif x <= 1.0:
+        elif x < 1:
             alpha = A*(1-x)/(1-s)
-        else:
-            if s < 1:
-                alpha = 0
-            else:
-                alpha = A
 
         if alpha < 1:
             value_bet = int(round(alpha/(1-alpha)*self.pot))
@@ -262,6 +258,97 @@ class masterchef:
             ok = raw_input('press enter\n')
         return Check()
     
+
+    """
+    def evaluate_opponent(self):
+        
+        if self.hands_played >= 1:           
+            last_pot = 0.0
+            self_bet_for_round = 0
+            opponent_bet_for_round = 0
+            community_ranks = zeros(0,int)
+            community_suits = zeros(0,int)
+
+            # obtain opponent's betting behavior from the previous round, and determine strength of hand if there's a showdown
+            # 
+            for play in self.last[1]:
+                if play[0] == self.name:
+                    if isinstance(play[1],Post):
+                        last_pot = last_pot + play[1].amount
+                        self_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Bet):
+                        last_pot = last_pot + play[1].amount
+                        self_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Raise):
+                        last_pot = last_pot - self_bet_for_round + play[1].amount
+                        self_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Call):
+                        last_pot = last_pot + opponent_bet_for_round - self_bet_for_round
+                        self_bet_for_round = opponent_bet_for_round
+                elif play[0] == self.opponent['name']:
+                    strength_of_bet = zeros(0)
+                    if isinstance(play[1],Post):
+                        last_pot = last_pot + play[1].amount
+                        opponent_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Bet):
+                        last_pot = last_pot + play[1].amount
+                        opponent_bet_for_round = play[1].amount
+                        strength_of_bet = play[1].amount/last_pot
+                    elif isinstance(play[1],Raise):
+                        last_pot = last_pot - opponent_bet_for_round + play[1].amount
+                        strength_of_bet = (play[1].amount - opponent_bet_for_round)/last_pot
+                        opponent_bet_for_round = play[1].amount
+                    elif isinstance(play[1],Call):
+                        last_pot = last_pot + self_bet_for_round - opponent_bet_for_round
+                        strength_of_bet = (self_bet_for_round - opponent_bet_for_round)/last_pot
+                        opponent_bet_for_round = self_bet_for_round
+                    elif isinstance(play[1],Check):
+                        strength_of_bet = 0.0
+                        a = 1
+                    elif isinstance(play[1],Show):
+                        opponent_ranks = array([play[1].hand[0].rank,play[1].hand[1].rank])
+                        opponent_suits = array([play[1].hand[0].suit,play[1].hand[1].suit])
+                        #print play[1].hand
+                        #print last_board
+                        self.opponent_hand_strength = HandEvaluator.evaluate_hand(play[1].hand,last_board)
+                        print self.opponent_hand_strength
+                        
+                    self.opponent_bet_history = append(self.opponent_bet_history,strength_of_bet)
+                   
+                elif play[0] == 'Dealer':
+
+                    self_bet_for_round = 0
+                    opponent_bet_for_round = 0
+                    
+                    if len(play[1].cards) == 20:
+                        card_string = play[1].cards
+                        last_board_string = play[1].cards
+                        last_board = []
+                        for i in xrange(0,5):
+                            str_pos = 4*i+1
+                            if card_string[str_pos] == 'A':
+                                card_rank = 14
+                            elif card_string[str_pos] == 'K':
+                                card_rank = 13
+                            elif card_string[str_pos] == 'Q':
+                                card_rank = 12
+                            elif card_string[str_pos] == 'J':
+                                card_rank = 11
+                            elif card_string[str_pos] == 'T':
+                                card_rank = 10
+                            else:
+                                card_rank = int(card_string[str_pos])
+                            str_pos = 4*i+2
+                            if card_string[str_pos] == 's':
+                                card_suit = 1
+                            elif card_string[str_pos] == 'h':
+                                card_suit = 2
+                            elif card_string[str_pos] == 'd':
+                                card_suit = 3
+                            elif card_string[str_pos] == 'c':
+                                card_suit = 4
+                            last_board.append(Card(card_rank,card_suit))
+    """
     def reset(self, won, last_hand):
         """Reset accepts a boolean indicating whether you won a match and
         provides the last hand if you want to update any statistics from it
@@ -271,3 +358,4 @@ class masterchef:
         self.percentiles = {}
         self.opponent_percentiles = {}
         #self.evaluate_opponent()
+        pass
