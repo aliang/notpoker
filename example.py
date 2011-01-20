@@ -1,11 +1,16 @@
 from pokerbots.engine.game import Table
 from pokerbots.player.pokerbot import Pokerbot
 import time
-import sys
-sys.path.append('pokerbots\player\\vivekbot')
 
+<<<<<<< HEAD
 p1 = Pokerbot('Template')
 p2 = Pokerbot('masterchef')
+=======
+# need to create a module name botname.botname containing the correct code.
+# it's hardcoded sadly
+p1 = Pokerbot('vivekbot')
+p2 = Pokerbot('vivekbot')
+>>>>>>> bc45e2f49e0a1208895805bd22618131df48c669
 
 num_matches = 10
 

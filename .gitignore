@@ -8,5 +8,6 @@ include/*
 lib/*
 pokerbots/__init__.pyc
 pokerbots/hh/*.txt
+pokerbots/player/*/*.pyc
 pokerbots/player/*.pyc
 pokerbots/engine/__init__.pyc
