@@ -6,6 +6,10 @@
 bin/*
 include/*
 lib/*
+support_files/seven.*
+support_files/six.*
+support_files/five.*
+support_files/two.*
 pokerbots/__init__.pyc
 pokerbots/hh/*.txt
 pokerbots/hh/*/*.txt
