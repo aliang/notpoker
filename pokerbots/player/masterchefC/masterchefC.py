@@ -6,8 +6,8 @@ from numpy import *
 class masterchefC:
     def __init__(self, param1=0.7, param2=1, param3=0, param4=0.5):
 
-        self.debug=False
-        self.unlimited=True
+        self.debug = False
+        self.unlimited = True
         
         # my name
         self.name = "masterchef"
@@ -15,8 +15,6 @@ class masterchefC:
         self.hand_counter = 0
         # to store percentiles for this hand
         self.percentiles = {}
-
-        
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
