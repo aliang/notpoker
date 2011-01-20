@@ -143,8 +143,10 @@ class masterchefA:
         elif x <= 1.0:
             alpha = A*(1-x)/(1-s)
         else:
-            # yeah it's the same, but this is just to catch an edge case
-            alpha = A*(1-x)/(1-s)
+            if s < 1:
+                alpha = 0
+            else:
+                alpha = A
 
         if alpha < 1:
             value_bet = int(round(alpha/(1-alpha)*self.pot))
