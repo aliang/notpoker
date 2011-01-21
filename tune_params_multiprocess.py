@@ -14,6 +14,7 @@ def run_tournament(tournament_teams):
         tournament_winners.append(bye_team)
     pool = Pool(processes=4)
     while len(tournament_teams) > 0:
+        start_time = time.time()
         result1 = None
         result2 = None
         result3 = None
@@ -42,6 +43,8 @@ def run_tournament(tournament_teams):
             tournament_teams.remove(pair4[0])
             tournament_teams.remove(pair4[1])
             result4 = pool.apply_async(face_off, pair4)
+        # need to wait for all processes to finish.
+        # TODO: Is there a way around this?
         if result1:
             tournament_winners.append(result1.get())
         if result2:
@@ -50,6 +53,7 @@ def run_tournament(tournament_teams):
             tournament_winners.append(result3.get())
         if result4:
             tournament_winners.append(result4.get())
+        print "Played 4 matches in %.3f seconds" % (time.time() - start_time,)
     # print "Teams left: %s" % (len(tournament_teams) + len(tournament_winners),)
     return run_tournament(tournament_winners)
 
@@ -74,7 +78,6 @@ def face_off(p1_params, p2_params, base_name):
     p2 = Pokerbot(p2_name)
     
     num_matches = 25
-    start_time = time.time()
     for i in range(num_matches):
         t = Table(p1, p2)
         t.play_match()
@@ -89,10 +92,10 @@ def face_off(p1_params, p2_params, base_name):
         # if i > 0 and (i + 1) % 10 == 0:
             # print "So far, of %s matches, %s won %s and %s won %s" % \
                 # (i + 1, p1_name, p1_wins, p2_name, p2_wins,)
-    print "%s %s - %s %s (%s matches, %s sec)" % \
+    print "%s %s - %s %s (%s matches)" % \
         ("(%.3f, %.3f, %.3f, %.3f)" % p1_params, p1_wins,
         p2_wins, "(%.3f, %.3f, %.3f, %.3f)" % p2_params,
-        num_matches, round(time.time() - start_time, 2))
+        num_matches)
     if p1_wins > p2_wins:
         return p1_params
     else:
