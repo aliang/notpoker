@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class masterchefC:
-    def __init__(self, param1=0.5, param2=1, param3=1, param4=0.05):
+    def __init__(self, param1=0.5, param2=1, param3=1, param4=20):
         self.debug = False
         self.unlimited = True
         
@@ -53,6 +53,8 @@ class masterchefC:
         # [0-> not affected, 1->completely determined by]
         
         self.p4 = 1/param4
+        if self.p4 > 1:
+            self.p4 = 1
         # how long we integrate opponent bet strength:
         # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
         
