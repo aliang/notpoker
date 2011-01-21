@@ -3,14 +3,13 @@ from random import randint
 from hand_evaluator import HandEvaluator
 from numpy import *
 
-class masterchefC:
-    def __init__(self, param1=0.7, param2=1, param3=0, param4=0.5):
-
+class masterchefB:
+    def __init__(self, param1=0.5, param2=1, param3=1, param4=0.05):
         self.debug = False
         self.unlimited = True
         
         # my name
-        self.name = "masterchef"
+        self.name = "testchef"
         # to keep hand_history
         self.hand_counter = 0
         # to store percentiles for this hand
@@ -140,8 +139,13 @@ class masterchefC:
 
         if x <= s:
             alpha = A*x/s
-        elif x < 1:
+        elif x <= 1.0:
             alpha = A*(1-x)/(1-s)
+        else:
+            if s < 1:
+                alpha = 0
+            else:
+                alpha = A
 
         if alpha < 1:
             value_bet = int(round(alpha/(1-alpha)*self.pot))
