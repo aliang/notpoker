@@ -48,10 +48,11 @@ def face_off(p1_params, p2_params):
         else:
             p2_wins += 1
         if i > 0 and (i + 1) % 10 == 0:
-            print "So far, of %s matches, %s won %s and %s won %s" % (i + 1, p1_name, p1_wins, p2_name, p2_wins,)
+            print "So far, of %s matches, %s won %s and %s won %s" % \
+                (i + 1, p1_name, p1_wins, p2_name, p2_wins,)
 
     print "%s matches: %s won %s and %s won %s in %s seconds" % \
-        (num_matches, p1_name, p1_wins, p2_name, p2_wins, start_time - time.time())
+        (num_matches, p1_name, p1_wins, p2_name, p2_wins, start_time - time.time(),)
 
 def generate_bot(target_name, param_set):
     source_name = "masterchef_template"
