@@ -53,6 +53,10 @@ def face_off(p1_params, p2_params):
 
     print "%s matches: %s won %s and %s won %s in %s seconds" % \
         (num_matches, p1_name, p1_wins, p2_name, p2_wins, start_time - time.time(),)
+    if p1_wins > p2_wins:
+        return p1_params
+    else:
+        return p2_params
 
 def generate_bot(target_name, param_set):
     source_name = "masterchef_template"
