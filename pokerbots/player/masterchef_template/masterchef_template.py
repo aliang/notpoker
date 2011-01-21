@@ -1,7 +1,7 @@
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
-from random import randint
+# from random import randint
 from hand_evaluator import HandEvaluator
-from numpy import *
+# from numpy import *
 
 class masterchef_template:
     def __init__(self, param1=0.5, param2=1, param3=1.0, param4=20):
@@ -58,7 +58,7 @@ class masterchef_template:
         # how long we integrate opponent bet strength:
         # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
         
-        self.opponent_bet_history = zeros(0)
+        # self.opponent_bet_history = zeros(0)
         self.opponent_hand_strength = 0
         self.opponent_previous_pip = 0
 
