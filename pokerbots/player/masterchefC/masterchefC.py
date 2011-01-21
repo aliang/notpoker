@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class masterchefC:
-    def __init__(self, param1=0.5, param2=1, param3=1, param4=20):
+    def __init__(self, param1=0.5, param2=1, param3=1.0, param4=20):
         self.debug = False
         self.unlimited = True
         
@@ -52,7 +52,7 @@ class masterchefC:
         # fraction of potodds_ratio that is affected by opponent bet strength
         # [0-> not affected, 1->completely determined by]
         
-        self.p4 = 1/param4
+        self.p4 = 1.0/param4
         if self.p4 > 1:
             self.p4 = 1
         # how long we integrate opponent bet strength:
@@ -163,13 +163,6 @@ class masterchefC:
 
         if street == 5:
             value_bet = value_call
-        """
-        print('self.hand ',self.hand)
-        print('x ',x)
-        print('alpha ',alpha)
-        print('value_call ',value_call)
-        """
-
 
         self.opponent_potodds_estimate = 2*(self.opponent['pip']-self.opponent_previous_pip)/self.pot
         self.opponent_previous_pip = self.opponent['pip']
