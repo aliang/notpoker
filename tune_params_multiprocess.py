@@ -53,7 +53,7 @@ def run_tournament(tournament_teams):
             tournament_winners.append(result3.get())
         if result4:
             tournament_winners.append(result4.get())
-        print "Played 4 matches in %.3f seconds" % (time.time() - start_time,)
+        # print "Played 4 matches in %.3f seconds" % (time.time() - start_time,)
     # print "Teams left: %s" % (len(tournament_teams) + len(tournament_winners),)
     return run_tournament(tournament_winners)
 
@@ -141,14 +141,11 @@ def generate_bot(target_name, param_set):
         else:
             print line,
 
-#p1_choices = (0.4, 0.45, 0.5, 0.55, 0.6)
-#p2_choices = (0.7, 0.8, 0.9, 0.95, 0.975, 0.99, 1.0)
-#p3_choices = (0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
-#p4_choices = (1, 2, 5, 10, 20, 30, 50, 100)
-p1_choices = (0.4, 0.45, 0.5)
-p2_choices = (0.7, 0.8, 0.9)
-p3_choices = (0, 0.1, 0.2, 0.3)
-p4_choices = (1, 2, 5, 10, 20)
-# this is 3080 teams
-teams = list(itertools.product(p1_choices, p2_choices, p3_choices, p4_choices))
-best_team = run_tournament(teams)
+if __name__ == '__main__':
+    p1_choices = (0.4, 0.45, 0.5, 0.55, 0.6)
+    p2_choices = (0.7, 0.8, 0.9, 0.95, 0.975, 0.99, 1.0)
+    p3_choices = (0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+    p4_choices = (1, 2, 5, 10, 20, 30, 50, 100)
+    # this is 3080 teams
+    teams = list(itertools.product(p1_choices, p2_choices, p3_choices, p4_choices))
+    best_team = run_tournament(teams)
