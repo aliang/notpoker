@@ -3,7 +3,7 @@ from random import randint
 from hand_evaluator import HandEvaluator
 from numpy import *
 
-class masterchefB:
+class masterchefC:
     def __init__(self, param1=0.5, param2=1, param3=1, param4=0.05):
         self.debug = False
         self.unlimited = True
@@ -52,7 +52,7 @@ class masterchefB:
         # fraction of potodds_ratio that is affected by opponent bet strength
         # [0-> not affected, 1->completely determined by]
         
-        self.p4 = param4
+        self.p4 = 1/param4
         # how long we integrate opponent bet strength:
         # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
         
