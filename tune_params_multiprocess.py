@@ -3,6 +3,8 @@ from pokerbots.player.pokerbot import Pokerbot
 import sys, itertools, random, fileinput, shutil, os, time
 from multiprocessing import Pool
 
+NUMBER_OF_PROCESSES = 4
+
 def run_tournament(tournament_teams):
     # assume input is list -- this is different!
     if len(tournament_teams) == 1:
@@ -12,48 +14,25 @@ def run_tournament(tournament_teams):
         bye_team = random.choice(tournament_teams)
         tournament_teams.remove(bye_team)
         tournament_winners.append(bye_team)
-    pool = Pool(processes=4)
+    pool = Pool(processes=NUMBER_OF_PROCESSES)
     while len(tournament_teams) > 0:
         start_time = time.time()
-        result1 = None
-        result2 = None
-        result3 = None
-        result4 = None
-        if len(tournament_teams) > 0:
-            pair1 = random.sample(tournament_teams, 2)
-            pair1.append("tournament1")
-            tournament_teams.remove(pair1[0])
-            tournament_teams.remove(pair1[1])
-            result1 = pool.apply_async(face_off, pair1)
-        if len(tournament_teams) > 0:
-            pair2 = random.sample(tournament_teams, 2)
-            pair2.append("tournament2")
-            tournament_teams.remove(pair2[0])
-            tournament_teams.remove(pair2[1])
-            result2 = pool.apply_async(face_off, pair2)
-        if len(tournament_teams) > 0:
-            pair3 = random.sample(tournament_teams, 2)
-            pair3.append("tournament3")
-            tournament_teams.remove(pair3[0])
-            tournament_teams.remove(pair3[1])
-            result3 = pool.apply_async(face_off, pair3)
-        if len(tournament_teams) > 0:
-            pair4 = random.sample(tournament_teams, 2)
-            pair4.append("tournament4")
-            tournament_teams.remove(pair4[0])
-            tournament_teams.remove(pair4[1])
-            result4 = pool.apply_async(face_off, pair4)
-        # need to wait for all processes to finish.
+        results = [None for i in xrange(NUMBER_OF_PROCESSES)]
+        # Start all the processes, if necessary
+        for i in xrange(NUMBER_OF_PROCESSES):
+            if len(tournament_teams) > 0:
+                pair = random.sample(tournament_teams, 2)
+                # base name of this
+                pair.append("tournament%s" % (i,))
+                tournament_teams.remove(pair[0])
+                tournament_teams.remove(pair[1])
+                results[i] = pool.apply_async(face_off, pair)
+        # Wait for all processes to finish.
         # TODO: Is there a way around this?
-        if result1:
-            tournament_winners.append(result1.get())
-        if result2:
-            tournament_winners.append(result2.get())
-        if result3:
-            tournament_winners.append(result3.get())
-        if result4:
-            tournament_winners.append(result4.get())
-        # print "Played 4 matches in %.3f seconds" % (time.time() - start_time,)
+        for i in xrange(NUMBER_OF_PROCESSES):
+            if results[i]:
+                tournament_winners.append(results[i].get())
+        # print "Played %s matches in %.3f seconds" % (NUMBER_OF_PROCESSES, time.time() - start_time,)
     # print "Teams left: %s" % (len(tournament_teams) + len(tournament_winners),)
     return run_tournament(tournament_winners)
 
