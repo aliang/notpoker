@@ -23,6 +23,7 @@ def run_tournament(tournament_teams):
         # replace with a real way of choosing winners
         winner = face_off(*pair)
         tournament_winners.add(winner)
+        print "Teams left: %s" % (len(tournament_teams) + len(tournament_winners),)
     return run_tournament(tournament_winners)
 
 def face_off(p1_params, p2_params):
@@ -47,12 +48,12 @@ def face_off(p1_params, p2_params):
             p1_wins += 1
         else:
             p2_wins += 1
-        if i > 0 and (i + 1) % 10 == 0:
-            print "So far, of %s matches, %s won %s and %s won %s" % \
-                (i + 1, p1_name, p1_wins, p2_name, p2_wins,)
+        # if i > 0 and (i + 1) % 10 == 0:
+            # print "So far, of %s matches, %s won %s and %s won %s" % \
+                # (i + 1, p1_name, p1_wins, p2_name, p2_wins,)
 
     print "%s matches: %s won %s and %s won %s in %s seconds" % \
-        (num_matches, p1_name, p1_wins, p2_name, p2_wins, start_time - time.time(),)
+        (num_matches, p1_name, p1_wins, p2_name, p2_wins, round(time.time() - start_time, 2),)
     if p1_wins > p2_wins:
         return p1_params
     else:
@@ -84,7 +85,7 @@ def generate_bot(target_name, param_set):
         if fileinput.filelineno() == 6:
             print "class %s:" % (target_name,)
         elif fileinput.filelineno() == 7:
-            print "    def __init__(self, param1=%s, param2=%s, param3=%s, param4=%s):" % param_set,
+            print "    def __init__(self, param1=%s, param2=%s, param3=%s, param4=%s):" % param_set
         elif fileinput.filelineno() == 12:
             print "        self.name = \"%s\"" % (target_name,)
         else:
