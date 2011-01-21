@@ -9,6 +9,10 @@ test_opponent_names = [
     'Template'
 ]
 
+# okay, we should create an array of bots and play them against each other
+# generate all the combinations we want to play
+# then round robin them
+
 for p1_name in test_opponent_names:
     p2_name = sys.argv[1]
     p1_wins = 0
