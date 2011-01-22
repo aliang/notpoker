@@ -24,7 +24,7 @@ def run_tournament(tournament_teams):
             if len(tournament_teams) > 0:
                 pair = random.sample(tournament_teams, 2)
                 # base name of this
-                pair.append("tournament-%s" % (i,))
+                pair.append("tournament_%s" % (i,))
                 tournament_teams.remove(pair[0])
                 tournament_teams.remove(pair[1])
                 results[i] = pool.apply_async(face_off, pair)
@@ -40,8 +40,8 @@ def run_tournament(tournament_teams):
 # Have to pass name in. Make sure not to reuse names between concurrent
 # processes, or you will have file access issues.
 def face_off(p1_params, p2_params, base_name):
-    p1_name = base_name + "-1"
-    p2_name = base_name + "-2"
+    p1_name = base_name + "_1"
+    p2_name = base_name + "_2"
     p1_module_key = 'pokerbots.player.%s.%s' % (p1_name, p1_name,)
     p2_module_key = 'pokerbots.player.%s.%s' % (p2_name, p2_name,)
     p1_wins = 0
