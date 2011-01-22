@@ -4,12 +4,12 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class masterchefB:
-    def __init__(self, param1=0.5, param2=1.0, param3=1.0, param4=0.1): 
+    def __init__(self, param1=0.5, param2=1.0, param3=1.0, param4=0.05): 
         self.debug = False
-        self.unlimited = True
+        self.unlimited = False
         
         # my name
-        self.name = "testchef"
+        self.name = "masterchefB"
         # to keep hand_history
         self.hand_counter = 0
         # to store percentiles for this hand

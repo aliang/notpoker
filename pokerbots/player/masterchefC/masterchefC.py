@@ -1,15 +1,15 @@
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
 from random import randint
 from hand_evaluator import HandEvaluator
-from numpy import *
+#from numpy import *
 
 class masterchefC:
-    def __init__(self, param1=0.5, param2=1, param3=1.0, param4=20):
+    def __init__(self, param1=0.4, param2=0.95, param3=0.1, param4=20):
         self.debug = False
-        self.unlimited = True
+        self.unlimited = False
         
         # my name
-        self.name = "testchef"
+        self.name = "masterchefC"
         # to keep hand_history
         self.hand_counter = 0
         # to store percentiles for this hand
@@ -58,7 +58,7 @@ class masterchefC:
         # how long we integrate opponent bet strength:
         # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
         
-        self.opponent_bet_history = zeros(0)
+        #self.opponent_bet_history = zeros(0)
         self.opponent_hand_strength = 0
         self.opponent_previous_pip = 0
 
@@ -138,6 +138,8 @@ class masterchefC:
         x = percentile
         A = self.potodds_ratio_fixed*(1-self.p3) + self.potodds_ratio_variable*self.p3
         s = self.slow_play_threshold
+
+        print(A)
 
         if x <= s:
             alpha = A*x/s
