@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class zachbot:
-    def __init__(self, param1=0.35, param2=0.96, param3=0.5, param4=20):
+    def __init__(self, param1=0.35, param2=0.96, param3=0.5, param4=20, param5=0, param6=2):
         self.debug = False
         self.unlimited = True
         
@@ -43,7 +43,11 @@ class zachbot:
 
         self.potodds_ratio_variable = param1
         # how strongly our betting depends on hand strength
-        # this is influenced by opponent behavior
+        # this is influenced by opponent betting
+
+        self.potodds_ratio_showdown = param1
+        # how strongly our betting depends on hand strength
+        # this is incluenced by opponent showdown data
 
         self.slow_play_threshold = param2
         # minimum hand percentile before we reduce our bet strength (slow play)
@@ -57,6 +61,16 @@ class zachbot:
             self.p4 = 1
         # how long we integrate opponent bet strength:
         # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
+
+        self.p5 = param5
+        # how much we use showdown data to alter our potodds_ratio_variable
+        # 0 --> potodds_variable determined completely by non-showdown bet data
+        # 1 --> potodds variable determined completely by showdown data
+
+        self.p6 = 1./param6
+        if self.p6 > 1:
+            self.p6 = 1
+        # 1/(number of showdowns averaged over)
         
         self.opponent_bet_history = []
         self.opponent_showdown_bet_strength = []
@@ -137,7 +151,10 @@ class zachbot:
         Returns an action before the flop, based on the table and the player
         """
         x = percentile
-        A = self.potodds_ratio_fixed*(1-self.p3) + self.potodds_ratio_variable*self.p3
+        A = (self.potodds_ratio_fixed*(1-self.p3) +
+             self.potodds_ratio_showdown*self.p3*self.p5 +
+             self.potodds_ratio_variable*self.p3*(1-self.p5))
+             
         s = self.slow_play_threshold
 
         if x <= s:
@@ -396,4 +413,4 @@ class zachbot:
         self.opponent_percentiles = {}
         #self.evaluate_opponent()
         
-        __init__(self, param1=0.45, param2=0.99, param3=1.0, param4=20)
+        self.__init__(0.45, 0.99, 1.0, 20)
