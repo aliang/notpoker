@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 #from numpy import *
 
 class masterchefC:
-    def __init__(self, param1=0.4, param2=0.95, param3=0.1, param4=20):
+    def __init__(self, param1=0.5, param2=0.95, param3=0.5, param4=20):
         self.debug = False
         self.unlimited = False
         
@@ -109,21 +109,21 @@ class masterchefC:
                     self.percentiles['flop'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
                     if self.debug:
                         print('flop percentile ',self.percentiles['flop'])
-                        self.opponent_previous_pip=0
+                    self.opponent_previous_pip=0
                 return self.strategy(3, self.percentiles['flop'])
             elif len(self.board.board) == 4:
                 if 'turn' not in self.percentiles:
                     self.percentiles['turn'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
                     if self.debug:
                         print('turn percentile ',self.percentiles['turn'])
-                        self.opponent_previous_pip=0
+                    self.opponent_previous_pip=0
                 return self.strategy(4, self.percentiles['turn'])
             elif len(self.board.board) == 5:
                 if 'river' not in self.percentiles:
                     self.percentiles['river'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
                     if self.debug:
                         print('river percentile ',self.percentiles['river'])
-                        self.opponent_previous_pip=0
+                    self.opponent_previous_pip=0
                 return self.strategy(5, self.percentiles['river'])
 
         if self.debug:
