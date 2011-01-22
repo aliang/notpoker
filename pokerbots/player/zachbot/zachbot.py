@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class zachbot:
-    def __init__(self, param1=0.45, param2=0.99, param3=1.0, param4=20):
+    def __init__(self, param1=0.35, param2=0.96, param3=0.5, param4=20):
         self.debug = False
         self.unlimited = True
         
