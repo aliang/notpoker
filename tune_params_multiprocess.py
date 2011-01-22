@@ -34,7 +34,7 @@ def run_tournament(tournament_teams):
             if results[i]:
                 tournament_winners.append(results[i].get())
         # print "Played %s matches in %.3f seconds" % (NUMBER_OF_PROCESSES, time.time() - start_time,)
-    # print "Teams left: %s" % (len(tournament_teams) + len(tournament_winners),)
+    print "Teams left: %s" % (len(tournament_teams) + len(tournament_winners),)
     return run_tournament(tournament_winners)
 
 # Have to pass name in. Make sure not to reuse names between concurrent
@@ -131,3 +131,4 @@ if __name__ == '__main__':
     # this is 3080 teams
     teams = list(itertools.product(p1_choices, p2_choices, p3_choices, p4_choices))
     best_team = run_tournament(teams)
+    print best_team
