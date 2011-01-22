@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class zachbot:
-    def __init__(self, param1=0.35, param2=0.96, param3=0.5, param4=20, param5=0, param6=2):
+    def __init__(self, param1=0.4, param2=0.95, param3=0.3, param4=20, param5=0.50, param6=20):
         self.debug = False
         self.unlimited = True
         
@@ -37,6 +37,7 @@ class zachbot:
         # custom state variables
         #
         
+        self.p1 = param1
         self.potodds_ratio_fixed = param1
         # how strongly our betting depends on hand strength
         # this is fixed after initialization
@@ -49,6 +50,7 @@ class zachbot:
         # how strongly our betting depends on hand strength
         # this is incluenced by opponent showdown data
 
+        self.p2 = param2
         self.slow_play_threshold = param2
         # minimum hand percentile before we reduce our bet strength (slow play)
 
@@ -67,15 +69,21 @@ class zachbot:
         # 0 --> potodds_variable determined completely by non-showdown bet data
         # 1 --> potodds variable determined completely by showdown data
 
-        self.p6 = 1./param6
-        if self.p6 > 1:
+        self.p6 = param6
+        if self.p6 < 1:
             self.p6 = 1
-        # 1/(number of showdowns averaged over)
+        # number of recent showdowns used to determine opponent's behavior
         
         self.opponent_bet_history = []
         self.opponent_showdown_bet_strength = []
         self.opponent_showdown_hand_strength = []
         self.opponent_previous_pip = 0
+        
+        # polynomial fitting of opponent behavior
+        self.coeff = []
+        self.corr = 0.0
+        self.opponent_showdown_potodds_estimate = 0.0
+        self.potodds_ratio_showdown = 0.0
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
@@ -151,9 +159,14 @@ class zachbot:
         Returns an action before the flop, based on the table and the player
         """
         x = percentile
-        A = (self.potodds_ratio_fixed*(1-self.p3) +
-             self.potodds_ratio_showdown*self.p3*self.p5 +
-             self.potodds_ratio_variable*self.p3*(1-self.p5))
+        if self.potodds_ratio_showdown > 0:
+            A = (self.potodds_ratio_fixed*(1-self.p3) +
+                self.potodds_ratio_showdown*self.p3*self.p5 +
+                self.potodds_ratio_variable*self.p3*(1-self.p5))
+        else:
+            A = self.potodds_ratio_fixed*(1-self.p3) + self.potodds_ratio_variable*self.p3
+        #print 'showdown',self.potodds_ratio_showdown
+        #print 'bet',self.potodds_ratio_variable
              
         s = self.slow_play_threshold
 
@@ -163,11 +176,6 @@ class zachbot:
         elif x <= 1.0:
             #alpha = A*(1-x)/(1-s)
             alpha = 0
-        else:
-            if s < 1:
-                alpha = 0
-            else:
-                alpha = A
 
         if alpha < 1:
             value_bet = int(round(alpha/(1-alpha)*self.pot))
@@ -181,9 +189,14 @@ class zachbot:
         else:
             value_call = self.stack
 
-        if street == 5:
+        if street == 5 or street == 1:
             value_bet = value_call
 
+        if self.opponent_showdown_potodds_estimate > 0 and self.corr > 0.9:
+            self.potodds_ratio_showdown = self.opponent_showdown_potodds_estimate
+        else:
+            self.potodds_ratio_showdown = 0.0
+            
         self.opponent_potodds_estimate = 2*(self.opponent['pip']-self.opponent_previous_pip)/self.pot
         self.opponent_previous_pip = self.opponent['pip']
         
@@ -333,7 +346,6 @@ class zachbot:
                         opponent_hand_strength_turn = HandEvaluator.evaluate_hand(play[1].hand,last_board[0:4])
                         opponent_hand_strength_river = HandEvaluator.evaluate_hand(play[1].hand,last_board)
                         
-
                         opponent_hand_strength = [opponent_hand_strength_preflop,opponent_hand_strength_flop,
                                                     opponent_hand_strength_turn,opponent_hand_strength_river]
                         opponent_bet_strength = [opponent_bet_strength_preflop,opponent_bet_strength_flop,
@@ -341,15 +353,20 @@ class zachbot:
                         for i in xrange(0,4):
                             for j in xrange(0,len(opponent_bet_strength[i])):
                                 self.opponent_showdown_hand_strength.append(opponent_hand_strength[i])    
-                                self.opponent_showdown_bet_strength.append(opponent_bet_strength[i][j]) 
-                                #print ('hand',self.opponent_showdown_hand_strength)
-                                #print ('bet',self.opponent_showdown_bet_strength)
-                                coeff = polyfit(self.opponent_showdown_hand_strength,self.opponent_showdown_bet_strength,1)
-                                corr = corrcoef(self.opponent_showdown_hand_strength,self.opponent_showdown_bet_strength)[0,1]
-
-                                #print (coeff,corr)
+                                self.opponent_showdown_bet_strength.append(opponent_bet_strength[i][j])
+                                if len(self.opponent_showdown_hand_strength) > self.p6:
+                                    self.opponent_showdown_hand_strength = self.opponent_showdown_hand_strength[-self.p6:]
+                                    self.opponent_showdown_bet_strength = self.opponent_showdown_bet_strength[-self.p6:]
+                                degree = 1
+                                if len(self.opponent_showdown_hand_strength) > self.p6/2:
+                                    self.coeff = polyfit(self.opponent_showdown_hand_strength,self.opponent_showdown_bet_strength,degree)
+                                    self.corr = corrcoef(self.opponent_showdown_hand_strength,self.opponent_showdown_bet_strength)[0,1]
+                                    # store first coefficient, which estimate's opponent's A
+                                    self.opponent_showdown_potodds_estimate = self.coeff[0]
+                                else:
+                                    corr = 0
                     
-                    if isinstance(play[1],Bet) or isinstance(play[1],Raise) or isinstance(play[1],Call) or isinstance(play[1],Check):
+                    if isinstance(play[1],Bet) or isinstance(play[1],Raise):
                         if street == 'preflop':
                             opponent_bet_strength_preflop.append(opponent_bet_strength)
                         elif street == 'flop':
@@ -413,4 +430,5 @@ class zachbot:
         self.opponent_percentiles = {}
         #self.evaluate_opponent()
         
-        self.__init__(0.45, 0.99, 1.0, 20)
+        self.__init__(self.p1,self.p2,self.p3,1.0/self.p4,self.p5,self.p6)
+        
