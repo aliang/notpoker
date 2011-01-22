@@ -4,6 +4,7 @@ import sys, itertools, random, fileinput, shutil, os, time
 from multiprocessing import Pool
 
 NUMBER_OF_PROCESSES = 4
+# See bottom of file for parameter combinations and starting the game
 
 def run_tournament(tournament_teams):
     # assume input is list -- this is different!
@@ -23,7 +24,7 @@ def run_tournament(tournament_teams):
             if len(tournament_teams) > 0:
                 pair = random.sample(tournament_teams, 2)
                 # base name of this
-                pair.append("tournament%s" % (i,))
+                pair.append("tournament_%s" % (i,))
                 tournament_teams.remove(pair[0])
                 tournament_teams.remove(pair[1])
                 results[i] = pool.apply_async(face_off, pair)
@@ -33,14 +34,14 @@ def run_tournament(tournament_teams):
             if results[i]:
                 tournament_winners.append(results[i].get())
         # print "Played %s matches in %.3f seconds" % (NUMBER_OF_PROCESSES, time.time() - start_time,)
-    # print "Teams left: %s" % (len(tournament_teams) + len(tournament_winners),)
+    print "Teams left: %s" % (len(tournament_teams) + len(tournament_winners),)
     return run_tournament(tournament_winners)
 
 # Have to pass name in. Make sure not to reuse names between concurrent
 # processes, or you will have file access issues.
 def face_off(p1_params, p2_params, base_name):
-    p1_name = base_name + "1"
-    p2_name = base_name + "2"
+    p1_name = base_name + "_1"
+    p2_name = base_name + "_2"
     p1_module_key = 'pokerbots.player.%s.%s' % (p1_name, p1_name,)
     p2_module_key = 'pokerbots.player.%s.%s' % (p2_name, p2_name,)
     p1_wins = 0
@@ -75,6 +76,7 @@ def face_off(p1_params, p2_params, base_name):
         ("(%.3f, %.3f, %.3f, %.3f)" % p1_params, p1_wins,
         p2_wins, "(%.3f, %.3f, %.3f, %.3f)" % p2_params,
         num_matches)
+    sys.stdout.flush()
     if p1_wins > p2_wins:
         return p1_params
     else:
@@ -95,6 +97,7 @@ def generate_bot(target_name, param_set):
     # __init__.py, target_name.py, hand_evaluator.py
     # If so, just edit in place. If not, copy the template over.
     # TODO: This test is not perfect! But it will save time.
+    # We should really look if the files have content
     if not os.path.exists(target_dir) or not os.path.exists(target_full_file_name) or \
     not os.path.exists(target_init_py_name) or not os.path.exists(target_hand_evaluator_name):
         # first, delete any existing bot
@@ -128,3 +131,4 @@ if __name__ == '__main__':
     # this is 3080 teams
     teams = list(itertools.product(p1_choices, p2_choices, p3_choices, p4_choices))
     best_team = run_tournament(teams)
+    print best_team
