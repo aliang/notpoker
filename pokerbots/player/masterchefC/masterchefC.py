@@ -139,8 +139,6 @@ class masterchefC:
         A = self.potodds_ratio_fixed*(1-self.p3) + self.potodds_ratio_variable*self.p3
         s = self.slow_play_threshold
 
-        print(A)
-
         if x <= s:
             alpha = A*x/s
         elif x <= 1.0:

@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class zachbot:
-    def __init__(self, param1=0.5, param2=0.9, param3=1.0, param4=20):
+    def __init__(self, param1=0.45, param2=0.99, param3=1.0, param4=20):
         self.debug = False
         self.unlimited = True
         
@@ -389,8 +389,11 @@ class zachbot:
         """Reset accepts a boolean indicating whether you won a match and
         provides the last hand if you want to update any statistics from it
         """
+        
         self.hand_counter = self.hands_played
         # reset stuff
         self.percentiles = {}
         self.opponent_percentiles = {}
         #self.evaluate_opponent()
+        
+        __init__(self, param1=0.45, param2=0.99, param3=1.0, param4=20)
