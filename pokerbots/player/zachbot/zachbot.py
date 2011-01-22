@@ -1,10 +1,10 @@
-from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
+from pokerbots.engine.game import Raise, Check, Call, Bet, Fold, Post, Deal, Show, Card
 # from random import randint
 from hand_evaluator import HandEvaluator
-# from numpy import *
+from numpy import *
 
 class zachbot:
-    def __init__(self, param1=0.5, param2=1, param3=1.0, param4=20):
+    def __init__(self, param1=0.5, param2=0.9, param3=1.0, param4=20):
         self.debug = False
         self.unlimited = True
         
@@ -58,8 +58,9 @@ class zachbot:
         # how long we integrate opponent bet strength:
         # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
         
-        # self.opponent_bet_history = zeros(0)
-        self.opponent_hand_strength = 0
+        self.opponent_bet_history = []
+        self.opponent_showdown_bet_strength = []
+        self.opponent_showdown_hand_strength = []
         self.opponent_previous_pip = 0
 
     def respond(self):
@@ -88,7 +89,7 @@ class zachbot:
             # reset stuff
             self.percentiles = {}
             self.opponent_percentiles = {}
-            #self.evaluate_opponent()
+            self.evaluate_opponent()
         
         # self.last contains the last hand
         # define self.hand_history as [] in __init__
@@ -140,9 +141,11 @@ class zachbot:
         s = self.slow_play_threshold
 
         if x <= s:
-            alpha = A*x/s
+            #alpha = A*x/s
+            alpha = A*x
         elif x <= 1.0:
-            alpha = A*(1-x)/(1-s)
+            #alpha = A*(1-x)/(1-s)
+            alpha = 0
         else:
             if s < 1:
                 alpha = 0
@@ -256,16 +259,20 @@ class zachbot:
         return Check()
     
 
-    """
+    
     def evaluate_opponent(self):
         
         if self.hands_played >= 1:           
             last_pot = 0.0
             self_bet_for_round = 0
             opponent_bet_for_round = 0
-            community_ranks = zeros(0,int)
-            community_suits = zeros(0,int)
-
+            opponent_bet_strength_preflop = []
+            opponent_bet_strength_flop = []
+            opponent_bet_strength_turn = []
+            opponent_bet_strength_river = []
+            
+            street = 'preflop'
+            
             # obtain opponent's betting behavior from the previous round, and determine strength of hand if there's a showdown
             # 
             for play in self.last[1]:
@@ -290,34 +297,66 @@ class zachbot:
                     elif isinstance(play[1],Bet):
                         last_pot = last_pot + play[1].amount
                         opponent_bet_for_round = play[1].amount
-                        strength_of_bet = play[1].amount/last_pot
+                        opponent_bet_strength = play[1].amount/last_pot
                     elif isinstance(play[1],Raise):
                         last_pot = last_pot - opponent_bet_for_round + play[1].amount
-                        strength_of_bet = (play[1].amount - opponent_bet_for_round)/last_pot
+                        opponent_bet_strength = (play[1].amount - opponent_bet_for_round)/last_pot
                         opponent_bet_for_round = play[1].amount
                     elif isinstance(play[1],Call):
                         last_pot = last_pot + self_bet_for_round - opponent_bet_for_round
-                        strength_of_bet = (self_bet_for_round - opponent_bet_for_round)/last_pot
+                        opponent_bet_strength = (self_bet_for_round - opponent_bet_for_round)/last_pot
                         opponent_bet_for_round = self_bet_for_round
                     elif isinstance(play[1],Check):
-                        strength_of_bet = 0.0
-                        a = 1
+                        opponent_bet_strength = 0.0
                     elif isinstance(play[1],Show):
-                        opponent_ranks = array([play[1].hand[0].rank,play[1].hand[1].rank])
-                        opponent_suits = array([play[1].hand[0].suit,play[1].hand[1].suit])
                         #print play[1].hand
                         #print last_board
-                        self.opponent_hand_strength = HandEvaluator.evaluate_hand(play[1].hand,last_board)
-                        print self.opponent_hand_strength
+                        opponent_hand_strength_preflop = HandEvaluator.evaluate_hand(play[1].hand,[])
+                        opponent_hand_strength_flop = HandEvaluator.evaluate_hand(play[1].hand,last_board[0:3])
+                        opponent_hand_strength_turn = HandEvaluator.evaluate_hand(play[1].hand,last_board[0:4])
+                        opponent_hand_strength_river = HandEvaluator.evaluate_hand(play[1].hand,last_board)
+                        
+
+                        opponent_hand_strength = [opponent_hand_strength_preflop,opponent_hand_strength_flop,
+                                                    opponent_hand_strength_turn,opponent_hand_strength_river]
+                        opponent_bet_strength = [opponent_bet_strength_preflop,opponent_bet_strength_flop,
+                                                    opponent_bet_strength_turn,opponent_bet_strength_river]
+                        for i in xrange(0,4):
+                            for j in xrange(0,len(opponent_bet_strength[i])):
+                                self.opponent_showdown_hand_strength.append(opponent_hand_strength[i])    
+                                self.opponent_showdown_bet_strength.append(opponent_bet_strength[i][j]) 
+                                #print ('hand',self.opponent_showdown_hand_strength)
+                                #print ('bet',self.opponent_showdown_bet_strength)
+                                coeff = polyfit(self.opponent_showdown_hand_strength,self.opponent_showdown_bet_strength,1)
+                                corr = corrcoef(self.opponent_showdown_hand_strength,self.opponent_showdown_bet_strength)[0,1]
+
+                                #print (coeff,corr)
+                    
+                    if isinstance(play[1],Bet) or isinstance(play[1],Raise) or isinstance(play[1],Call) or isinstance(play[1],Check):
+                        if street == 'preflop':
+                            opponent_bet_strength_preflop.append(opponent_bet_strength)
+                        elif street == 'flop':
+                            opponent_bet_strength_flop.append(opponent_bet_strength)
+                        elif street == 'turn':
+                            opponent_bet_strength_turn.append(opponent_bet_strength)
+                        elif street == 'river':
+                            opponent_bet_strength_river.append(opponent_bet_strength)
                         
                     self.opponent_bet_history = append(self.opponent_bet_history,strength_of_bet)
-                   
+				
+				
                 elif play[0] == 'Dealer':
 
                     self_bet_for_round = 0
                     opponent_bet_for_round = 0
                     
-                    if len(play[1].cards) == 20:
+                    if len(play[1].cards) == 12:
+                        street = 'flop'
+                    elif len(play[1].cards) == 16:
+                        street = 'turn'
+                    elif len(play[1].cards) == 20:
+                        street = 'river'
+                    
                         card_string = play[1].cards
                         last_board_string = play[1].cards
                         last_board = []
@@ -345,7 +384,7 @@ class zachbot:
                             elif card_string[str_pos] == 'c':
                                 card_suit = 4
                             last_board.append(Card(card_rank,card_suit))
-    """
+    
     def reset(self, won, last_hand):
         """Reset accepts a boolean indicating whether you won a match and
         provides the last hand if you want to update any statistics from it
