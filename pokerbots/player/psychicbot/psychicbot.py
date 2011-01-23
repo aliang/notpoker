@@ -173,10 +173,11 @@ class psychicbot:
                 else:
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-    
+                
                 if x > s:
-                    if 2*chips_to_add <= self.stack:
-                        return Raise(self.pip+2*chips_to_add)
+                    random_addition = int(floor(3*random.rand(1))) #random between 0 and 2 to throw off pattern-recognizers for string bets
+                    if 2*chips_to_add +random_addition <= self.stack:
+                        return Raise(self.pip+2*chips_to_add + random_addition)
                     else:
                         return Raise(self.stack + self.pip)
                 
