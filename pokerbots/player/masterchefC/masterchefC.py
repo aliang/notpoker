@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 #from numpy import *
 
 class masterchefC:
-    def __init__(self, param1=0.5, param2=0.95, param3=0.5, param4=20):
+    def __init__(self, param1=0.4, param2=0.95, param3=0.1, param4=20):
         self.debug = False
         self.unlimited = False
         
@@ -101,7 +101,10 @@ class masterchefC:
                 self.percentiles['preflop'] = HandEvaluator.evaluate_hand(self.hand)
                 if self.debug:
                     print('preflop percentile ',self.percentiles['preflop'])
-                self.opponent_previous_pip=0
+                if self.button:
+                    self.opponent_previous_pip=2
+                else:
+                    self.opponent_previous_pip=1
             return self.strategy(2, self.percentiles['preflop'])
         elif self.board:
             if len(self.board.board) == 3:
