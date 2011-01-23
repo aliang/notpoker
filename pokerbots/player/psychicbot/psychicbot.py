@@ -125,12 +125,21 @@ class psychicbot:
         mu = mean(self.opponent_bet_history)
         sigma = std(self.opponent_bet_history)
         
-        #print sigma/mu
-        
         x = percentile            
         s = self.slow_play_threshold
 
         A = self.p1*(1-self.p7) + self.potodds_ratio_variable*self.p7
+
+        opponent_bet = 1.0*(self.opponent['pip'] - self.opponent_previous_pip)/self.pot
+        self.opponent_previous_pip = self.opponent['pip']
+        chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet 
+        if opponent_bet > 0:
+            self.opponent_bet_history.append(opponent_bet)
+            self.potodds_ratio_variable = ((1-1.0/self.p6)*self.potodds_ratio_variable + 2.0/self.p6*opponent_bet)
+            y = 1.0*sum(opponent_bet > array(self.opponent_bet_history))/len(self.opponent_bet_history) + 0.5*sum(opponent_bet == array(self.opponent_bet_history))/len(self.opponent_bet_history)
+            z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
+            if self.hands_played >= self.p6 and sigma/mu > 0.1:
+                x = z
         
         if x <= s:
             alpha = A*x
@@ -149,7 +158,7 @@ class psychicbot:
         else:
             value_call = self.stack
 
-        if street == 5 or street == 2:
+        if street == 5:
             value_bet = value_call
         
         for action in self.legal:
@@ -164,33 +173,13 @@ class psychicbot:
                 else:
                     return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
-                chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet              
+    
+                if x > s:
+                    if 2*chips_to_add <= self.stack:
+                        return Raise(self.pip+2*chips_to_add)
+                    else:
+                        return Raise(self.stack + self.pip)
                 
-                opponent_bet = 1.0*(self.opponent['pip'] - self.opponent_previous_pip)/self.pot
-                if opponent_bet > 0:
-                    self.opponent_bet_history.append(opponent_bet)
-                    self.potodds_ratio_variable = ((1-1.0/self.p6)*self.potodds_ratio_variable + 2.0/self.p6*opponent_bet)
-                self.opponent_previous_pip = self.opponent['pip']
-                if self.hands_played >= self.p6 and sigma/mu > 0.1: # the latter condition is to make sure the opponent isn't stupid (like template)
-                    # y is approximation of the opponent's percentile, z is approximate normalized probability of winning
-                    y = 1.0*sum(opponent_bet > array(self.opponent_bet_history))/len(self.opponent_bet_history) + 0.5*sum(opponent_bet == array(self.opponent_bet_history))/len(self.opponent_bet_history)
-                    z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
-                    if z <= s:
-                        zeta = A*x
-                    elif z <= 1.0:
-                        zeta = 0
-                    if zeta < 1:
-                        value_bet = int(round(zeta/(1-zeta)*self.pot))
-                    else:
-                        value_bet = self.stack
-                    zetacall = A*x
-                    if zetacall < 1:
-                        value_call = int(round(zetacall/(1-zetacall)*self.pot))
-                    else:
-                        value_call = self.stack
-                    if street == 5:
-                        value_bet = value_call
-                    
                 if x < 1:
                     if value_bet >= self.stack:
                         if value_bet <= chips_to_add:
@@ -206,34 +195,7 @@ class psychicbot:
                 else:
                     return Raise(self.stack + self.pip) # go all-in
             elif isinstance(action, Call): #only options are calling and folding
-                chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet
-                
-                opponent_bet = 1.0*(self.opponent['pip'] - self.opponent_previous_pip)/self.pot
-                if opponent_bet > 0:
-                    self.opponent_bet_history.append(opponent_bet)
-                    self.potodds_ratio_variable = ((1-1.0/self.p6)*self.potodds_ratio_variable + 2.0/self.p6*opponent_bet)
-                self.opponent_previous_pip = self.opponent['pip']
-                if self.hands_played >= self.p6 and sigma/mu > 0.1:
-                    # y is approximation of the opponent's percentile, z is approximate normalized probability of winning
-                    y = 1.0*sum(opponent_bet > array(self.opponent_bet_history))/len(self.opponent_bet_history) + 0.5*sum(opponent_bet == array(self.opponent_bet_history))/len(self.opponent_bet_history)
-                    z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
-                    #print x,y,z
-                    if z <= s:
-                        zeta = A*x
-                    elif z <= 1.0:
-                        zeta = 0
-                    if zeta < 1:
-                        value_bet = int(round(zeta/(1-zeta)*self.pot))
-                    else:
-                        value_bet = self.stack
-                    zetacall = A*x
-                    if zetacall < 1:
-                        value_call = int(round(zetacall/(1-zetacall)*self.pot))
-                    else:
-                        value_call = self.stack
-                    if street == 5:
-                        value_bet = value_call               
-                
+                            
                 if x < 1:
                     if value_call >= chips_to_add:
                         return Call()
