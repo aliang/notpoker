@@ -6,7 +6,7 @@ from numpy import *
 class zachbot:
     def __init__(self, param1=0.4, param2=0.95, param3=0.3, param4=20, param5=0.50, param6=20):
         self.debug = False
-        self.unlimited = True
+        self.unlimited = False
         
         # my name
         self.name = "zachbot"
@@ -195,7 +195,7 @@ class zachbot:
         if self.opponent_showdown_potodds_estimate > 0 and self.corr > 0.9:
             self.potodds_ratio_showdown = self.opponent_showdown_potodds_estimate
         else:
-            self.potodds_ratio_showdown = 0.0
+            self.potodds_ratio_showdown = 0.0  #[vivek] do we really want this to be set to 0 here?
             
         self.opponent_potodds_estimate = 2*(self.opponent['pip']-self.opponent_previous_pip)/self.pot
         self.opponent_previous_pip = self.opponent['pip']
@@ -364,7 +364,7 @@ class zachbot:
                                     # store first coefficient, which estimate's opponent's A
                                     self.opponent_showdown_potodds_estimate = self.coeff[0]
                                 else:
-                                    corr = 0
+                                    self.corr = 0
                     
                     if isinstance(play[1],Bet) or isinstance(play[1],Raise):
                         if street == 'preflop':

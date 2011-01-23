@@ -2,8 +2,8 @@ from pokerbots.engine.game import Table
 from pokerbots.player.pokerbot import Pokerbot
 import time
 
-p1_name = 'Template'
-p2_name = 'masterchefC'
+p1_name = 'masterchefC'
+p2_name = 'bleedbot'
 p1 = Pokerbot(p1_name)
 p2 = Pokerbot(p2_name)
 p1_wins = 0
