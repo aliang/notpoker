@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 #from numpy import *
 
 class masterchefC:
-    def __init__(self, param1=0.4, param2=0.95, param3=0.1, param4=20):
+    def __init__(self, param1=0.4, param2=0.95, param3=0.1, param4=20, **kwargs):
         self.debug = False
         self.unlimited = False
         

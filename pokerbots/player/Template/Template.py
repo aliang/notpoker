@@ -2,7 +2,7 @@ from pokerbots.engine.game import Raise, Check, Call, Bet, Fold
 from random import randint
 
 class Template(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         """This is a very simple player that demonstrates the API and is a good
         template for getting started
         """

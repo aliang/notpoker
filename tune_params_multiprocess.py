@@ -73,8 +73,8 @@ def face_off(p1_params, p2_params, base_name):
             # print "So far, of %s matches, %s won %s and %s won %s" % \
                 # (i + 1, p1_name, p1_wins, p2_name, p2_wins,)
     print "%s %s - %s %s (%s matches)" % \
-        ("(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % p1_params, p1_wins,
-        p2_wins, "(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % p2_params,
+        ("(%s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % p1_params, p1_wins,
+        p2_wins, "(%s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % p2_params,
         num_matches)
     sys.stdout.flush()
     if p1_wins > p2_wins:
@@ -83,7 +83,7 @@ def face_off(p1_params, p2_params, base_name):
         return p2_params
 
 def generate_bot(target_name, param_set):
-    source_name = "zachbot"
+    source_name = param_set[0]
     source_file_name = source_name + ".py"
     source_dir = os.path.join("pokerbots", "player", source_name)
     
@@ -118,7 +118,7 @@ def generate_bot(target_name, param_set):
             print "class %s:" % (target_name,)
         elif fileinput.filelineno() == 7:
             # TODO: Use all parameters
-            print "    def __init__(self, param1=%s, param2=%s, param3=%s, param4=%s, param5=%s, param6=%s):" % param_set
+            print "    def __init__(self, param1=%s, param2=%s, param3=%s, param4=%s, param5=%s, param6=%s):" % param_set[1:]
         elif fileinput.filelineno() == 12:
             print "        self.name = \"%s\"" % (target_name,)
         else:
@@ -134,12 +134,13 @@ if __name__ == '__main__':
     # p3_choices = (0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
     # p4_choices = (1, 2, 5, 10, 20, 30, 50, 100)
     # this is 3080 teams
+    botnames = ["Template", "masterchefC", "bleedbot", "psychicbot"]
     p1 = [0.4, 0.5, 0.6, 0.7]
     p2 = [0.95]
     p3 = [0.3, 0.5, 0.7]
     p4 = [5, 10, 20]
     p5 = [0.3, 0.5, 0.7]
     p6 = [2, 8, 16]
-    teams = list(itertools.product(p1, p2, p3, p4, p5, p6))
+    teams = list(itertools.product(botnames, p1, p2, p3, p4, p5, p6))
     best_team = run_tournament(teams)
     print best_team
