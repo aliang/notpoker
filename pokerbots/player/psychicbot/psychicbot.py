@@ -256,5 +256,5 @@ class psychicbot:
         self.opponent_percentiles = {}
         #self.evaluate_opponent()
         
-        self.__init__(self.p1,self.p2,self.p5,self.p6,self.p7)
+        self.__init__(self.p1,self.p2,self.p5,self.p6,self.p7,self.p8)
         
