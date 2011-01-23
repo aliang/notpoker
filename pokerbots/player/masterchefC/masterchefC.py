@@ -101,7 +101,10 @@ class masterchefC:
                 self.percentiles['preflop'] = HandEvaluator.evaluate_hand(self.hand)
                 if self.debug:
                     print('preflop percentile ',self.percentiles['preflop'])
-                self.opponent_previous_pip=0
+                if self.button:
+                    self.opponent_previous_pip=2
+                else:
+                    self.opponent_previous_pip=1
             return self.strategy(2, self.percentiles['preflop'])
         elif self.board:
             if len(self.board.board) == 3:
