@@ -8,6 +8,7 @@ NUMBER_OF_PROCESSES = 4
 
 def run_tournament(tournament_teams):
     # assume input is list -- this is different!
+    print "Teams at start of round: %s" % (len(tournament_teams),)
     if len(tournament_teams) == 1:
         return list(tournament_teams)[0]
     tournament_winners = []
@@ -93,22 +94,16 @@ def generate_bot(target_name, param_set):
     target_init_py_name = os.path.join(target_dir, "__init__.py")
     target_hand_evaluator_name = os.path.join(target_dir, "hand_evaluator.py")
 
-    # Check if the directory and three files we need exist:
-    # __init__.py, target_name.py, hand_evaluator.py
-    # If so, just edit in place. If not, copy the template over.
-    # TODO: This test is not perfect! But it will save time.
-    # We should really look if the files have content
-    if not os.path.exists(target_dir) or not os.path.exists(target_full_file_name) or \
-    not os.path.exists(target_init_py_name) or not os.path.exists(target_hand_evaluator_name):
-        # first, delete any existing bot
-        shutil.rmtree(target_dir, True)
-        # copy the new bot over
-        shutil.copytree(source_dir, target_dir)
-        # rename the template file to the final file
-        os.rename(
-            os.path.join(target_dir, source_file_name),
-            target_full_file_name
-        )
+    # Must copy every time, since the source can be different now
+    # first, delete any existing bot
+    shutil.rmtree(target_dir, True)
+    # copy the new bot over
+    shutil.copytree(source_dir, target_dir)
+    # rename the template file to the final file
+    os.rename(
+        os.path.join(target_dir, source_file_name),
+        target_full_file_name
+    )
 
     # also need to replace the line where we create a bot
     # commas after print statement are important!
@@ -118,7 +113,10 @@ def generate_bot(target_name, param_set):
             print "class %s:" % (target_name,)
         elif fileinput.filelineno() == 7:
             # TODO: Use all parameters
-            print "    def __init__(self, param1=%s, param2=%s, param3=%s, param4=%s, param5=%s, param6=%s):" % param_set[1:]
+            if source_name == "psychicbot":
+                print "    def __init__(self, param1=%s, param2=%s, param5=%s, param6=%s, param7=%s, param8=%s):" % param_set[1:]
+            else:
+                print "    def __init__(self, param1=%s, param2=%s, param3=%s, param4=%s, param5=%s, param6=%s):" % param_set[1:]
         elif fileinput.filelineno() == 12:
             print "        self.name = \"%s\"" % (target_name,)
         else:
@@ -133,14 +131,32 @@ if __name__ == '__main__':
     # p2_choices = (0.7, 0.8, 0.9, 0.95, 0.975, 0.99, 1.0)
     # p3_choices = (0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
     # p4_choices = (1, 2, 5, 10, 20, 30, 50, 100)
-    # this is 3080 teams
-    botnames = ["Template", "masterchefC", "bleedbot", "psychicbot"]
-    p1 = [0.4, 0.5, 0.6, 0.7]
-    p2 = [0.95]
+    botnames = ["masterchefC", "bleedbot"]
+    # previous results showed that this number tended lower than 0.6 but it may change for a psychicbot?
+    p1 = [0.35, 0.4, 0.45]
+    p2 = [0.95, 0.99]
     p3 = [0.3, 0.5, 0.7]
     p4 = [5, 10, 20]
     p5 = [0.3, 0.5, 0.7]
     p6 = [2, 8, 16]
-    teams = list(itertools.product(botnames, p1, p2, p3, p4, p5, p6))
+    
+    # psychicbot is different
+    psychicbot_p5 = [20, 50, 100, 200]
+    psychicbot_p8 = [0.25, 0.5, 0.75, 1]
+    
+    # 972 +  864 matches
+    print botnames
+    print "parameters 1-6 for these bots"
+    print p1
+    print p2
+    print p3
+    print p4
+    print p5
+    print p6
+    print "additional psychicbot parameters 5 and 8"
+    print psychicbot_p5
+    print psychicbot_p8
+    teams = list(itertools.product(botnames, p1, p2, p3, p4, p5, p6)) + \
+        list(itertools.product(["psychicbot"], p1, p2, psychicbot_p5, p4, p3, psychicbot_p8))
     best_team = run_tournament(teams)
     print best_team
