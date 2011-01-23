@@ -4,7 +4,7 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class psychicbot:
-    def __init__(self, param1=0.4, param2=0.95, param5=50, param6=20, param7=0.3, param8=0.5):
+    def __init__(self, param1=0.4, param2=0.95, param5=100, param6=20, param7=0.3, param8=0.5):
         self.debug = False
         self.unlimited = True
         
@@ -138,7 +138,7 @@ class psychicbot:
             self.potodds_ratio_variable = ((1-1.0/self.p6)*self.potodds_ratio_variable + 2.0/self.p6*opponent_bet)
             y = 1.0*sum(opponent_bet > array(self.opponent_bet_history))/len(self.opponent_bet_history) + 0.5*sum(opponent_bet == array(self.opponent_bet_history))/len(self.opponent_bet_history)
             z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
-            if self.hands_played >= self.p6 and sigma/mu > 0.1:
+            if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1:
                 x = z
         
         if x <= s:
