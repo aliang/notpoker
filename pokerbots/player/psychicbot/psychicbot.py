@@ -10,10 +10,6 @@ class psychicbot:
         
         # my name
         self.name = "psychicbot"
-        # to keep hand_history
-        self.hand_counter = 0
-        # to store percentiles for this hand
-        self.percentiles = {}
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -33,58 +29,13 @@ class psychicbot:
         self.pot = None
         self.time = None
 
-        #
-        # custom state variables
-        #
-        
-        self.p1 = param1
-        self.potodds_ratio_variable = param1
-        # self.p1 is used for determining the fixed portion of A
-
-        self.p2 = param2
-        self.slow_play_threshold = param2
-        # minimum hand percentile before we reduce our bet strength (slow play)
-
-        self.p5 = param5
-        # number of bets required to use psychic betting analysis of opponent
-        
-        self.p6 = param6
-        # number of bets to use in finding the variable component of A
-        
-        self.p7 = param7
-        # variable component of A
-        
-        self.p8 = param8
-        # fraction of EV calculated via psychic powers
-        
-        self.opponent_bet_history = []
-        self.opponent_showdown_bet_strength = []
-        self.opponent_showdown_hand_strength = []
-        self.opponent_previous_pip = 0
-        
-        # polynomial fitting of opponent behavior
-        self.coeff = []
-        self.corr = 0.0
-        self.opponent_showdown_potodds_estimate = 0.0
-        self.potodds_ratio_showdown = 0.0
+        self.reset()
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
-            
-        if self.hands_played != self.hand_counter:
-            self.hand_counter = self.hands_played
-            # reset stuff
-            self.percentiles = {}
-            self.opponent_percentiles = {}
-            self.opponent_previous_pip = 0
-        
-        # self.last contains the last hand
-        # define self.hand_history as [] in __init__
-        # or you can't append to this list
-        # self.hand_history.append(self.last)
         
         # see other templates for a modular way of determining an action
         if not self.board.board:
@@ -213,11 +164,43 @@ class psychicbot:
         provides the last hand if you want to update any statistics from it
         """
         
-        self.hand_counter = self.hands_played
-        # reset stuff
+        #
+        # custom state variables
+        #
+        
+        # to keep hand_history
+        self.hand_counter = 0
+        # to store percentiles for this hand
         self.percentiles = {}
         self.opponent_percentiles = {}
-        #self.evaluate_opponent()
         
-        self.__init__(self.p1,self.p2,self.p5,self.p6,self.p7,self.p8)
+        self.p1 = param1
+        self.potodds_ratio_variable = param1
+        # self.p1 is used for determining the fixed portion of A
+
+        self.p2 = param2
+        self.slow_play_threshold = param2
+        # minimum hand percentile before we reduce our bet strength (slow play)
+
+        self.p5 = param5
+        # number of bets required to use psychic betting analysis of opponent
         
+        self.p6 = param6
+        # number of bets to use in finding the variable component of A
+        
+        self.p7 = param7
+        # variable component of A
+        
+        self.p8 = param8
+        # fraction of EV calculated via psychic powers
+        
+        self.opponent_bet_history = []
+        self.opponent_showdown_bet_strength = []
+        self.opponent_showdown_hand_strength = []
+        self.opponent_previous_pip = 0
+        
+        # polynomial fitting of opponent behavior
+        self.coeff = []
+        self.corr = 0.0
+        self.opponent_showdown_potodds_estimate = 0.0
+        self.potodds_ratio_showdown = 0.0
