@@ -29,13 +29,23 @@ class masterchefC:
         self.pot = None
         self.time = None
 
-        self.reset()
+        # initial values of parameters
+        self.param1 = param1
+        self.param2 = param2
+        self.param3 = param3
+        self.param4 = param4
+
+        self.reset_internal_values()
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
+        
+        if self.hands_played != self.hand_counter:
+            self.hand_counter = self.hands_played
+            self.percentiles = {}
 
         if self.debug:
             print(self.name)
@@ -310,11 +320,10 @@ class masterchefC:
                                 card_suit = 4
                             last_board.append(Card(card_rank,card_suit))
     """
-    def reset(self, won, last_hand):
-        """Reset accepts a boolean indicating whether you won a match and
-        provides the last hand if you want to update any statistics from it
-        """
-        
+    
+    
+    def reset_internal_values(self):
+    
         self.opponent_percentiles = {}
         #self.evaluate_opponent()
         #
@@ -326,22 +335,22 @@ class masterchefC:
         # to store percentiles for this hand
         self.percentiles = {}
         
-        self.potodds_ratio_fixed = param1
+        self.potodds_ratio_fixed = self.param1
         # how strongly our betting depends on hand strength
         # this is fixed after initialization
 
-        self.potodds_ratio_variable = param1
+        self.potodds_ratio_variable = self.param1
         # how strongly our betting depends on hand strength
         # this is influenced by opponent behavior
 
-        self.slow_play_threshold = param2
+        self.slow_play_threshold = self.param2
         # minimum hand percentile before we reduce our bet strength (slow play)
 
-        self.p3 = param3
+        self.p3 = self.param3
         # fraction of potodds_ratio that is affected by opponent bet strength
         # [0-> not affected, 1->completely determined by]
         
-        self.p4 = 1.0/param4
+        self.p4 = 1.0/self.param4
         if self.p4 > 1:
             self.p4 = 1
         # how long we integrate opponent bet strength:
@@ -350,3 +359,11 @@ class masterchefC:
         #self.opponent_bet_history = zeros(0)
         self.opponent_hand_strength = 0
         self.opponent_previous_pip = 0
+    
+    
+    def reset(self, won, last_hand):
+        """Reset accepts a boolean indicating whether you won a match and
+        provides the last hand if you want to update any statistics from it
+        """
+        
+        self.reset_internal_values()

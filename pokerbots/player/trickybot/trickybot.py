@@ -3,17 +3,14 @@ from pokerbots.engine.game import Raise, Check, Call, Bet, Fold, Post, Deal, Sho
 from hand_evaluator import HandEvaluator
 from numpy import *
 
-class psychicbot:
+class trickybot:
     #def __init__(self, param1=0.4, param2=0.95, param5=100, param6=20, param7=0.3, param8=0.5):
     def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0):
         self.debug = False
         self.unlimited = True
         
         # my name
-        self.name = "psychicbot"
-
-        # name of last played opponent
-        self.opponent_name = None
+        self.name = "trickybot"
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -57,34 +54,26 @@ class psychicbot:
         if not self.board.board:
             if 'preflop' not in self.percentiles:
                 self.percentiles['preflop'] = HandEvaluator.evaluate_hand(self.hand)
-                self.played_this_street = 0
                 if self.button:
                     self.opponent_previous_pip=2
                 else:
                     self.opponent_previous_pip=1
-            self.played_this_street += 1
             return self.strategy(2, self.percentiles['preflop'])
         elif self.board:
             if len(self.board.board) == 3:
                 if 'flop' not in self.percentiles:
                     self.percentiles['flop'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
-                    self.played_this_street = 0
                     self.opponent_previous_pip=0
-                self.played_this_street += 1
                 return self.strategy(3, self.percentiles['flop'])
             elif len(self.board.board) == 4:
                 if 'turn' not in self.percentiles:
                     self.percentiles['turn'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
-                    self.played_this_street = 0
                     self.opponent_previous_pip=0
-                self.played_this_street += 1
                 return self.strategy(4, self.percentiles['turn'])
             elif len(self.board.board) == 5:
                 if 'river' not in self.percentiles:
                     self.percentiles['river'] = HandEvaluator.evaluate_hand(self.hand, self.board.cards)
-                    self.played_this_street = 0
                     self.opponent_previous_pip=0
-                self.played_this_street += 1
                 return self.strategy(5, self.percentiles['river'])
 
         return Check()
@@ -109,8 +98,6 @@ class psychicbot:
         opponent_bet = 1.0*(self.opponent['pip'] - self.opponent_previous_pip)/self.pot
         self.opponent_previous_pip = self.opponent['pip']
         chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet 
-
-        # code to predict opponents strength based on their bets
         if opponent_bet > 0:
             self.opponent_bet_history.append(opponent_bet)
             self.potodds_ratio_variable = ((1-1.0/self.p6)*self.potodds_ratio_variable + 2.0/self.p6*opponent_bet)
@@ -132,10 +119,7 @@ class psychicbot:
         else:
             value_bet = self.stack
 
-        if x <= s:
-            alphacall = A*x
-        elif x <= 1:
-            alphacall = 1 #make sure we call anything in our slowplay zone
+        alphacall = A*x
 
         if alphacall < 1:
             value_call = int(round(alphacall/(1-alphacall)*self.pot))
@@ -150,18 +134,24 @@ class psychicbot:
         for action in self.legal:
             
             if isinstance(action, Bet):
-
-                if value_bet >= self.stack:
-                    return Bet(self.stack)
-                elif value_bet > 0:
-                    return Bet(value_bet)
-
                 
+                
+                if not(self.button) and (street == 3):# or street == 4):
+                    return Check()
+                
+                if x < 1:
+                    if value_bet >= self.stack:
+                        return Bet(self.stack)
+                    elif value_bet > 0:
+                        return Bet(value_bet)
+                    else:
+                        return Check()
+                else:
+                    return Bet(self.stack)  # go all-in
             elif isinstance(action, Raise):
                 
-                if x > s: # pump money out with reraising (always min raise)
-                    random_addition = int(floor(3*random.rand(1)))
-                    #random between 0 and 2 to throw off pattern-recognizers for string bets
+                if x > s:
+                    random_addition = int(floor(3*random.rand(1))) #random between 0 and 2 to throw off pattern-recognizers for string bets
                     if 2*chips_to_add + random_addition <= self.stack:
                         return Raise(self.pip+2*chips_to_add + random_addition)
                     else:
@@ -169,27 +159,26 @@ class psychicbot:
                 
                 else:
                     if value_bet >= self.stack:
-                        if value_bet <= chips_to_add or self.played_this_street > 1: #defense
+                        if value_bet <= chips_to_add:
                             return Call()
                         else:
                             return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
-                        if self.played_this_street > 1: #defense against bleeding
-                            return Call()
-                        else:
-                            return Raise(value_bet + self.pip)
+                        return Raise(value_bet + self.pip)
                     elif value_call >= chips_to_add:
                         return Call()
                     else:
                         return Fold()
             
             elif isinstance(action, Call): #only options are calling and folding
-
+                
+                if x < 1:
                     if value_call >= chips_to_add:
                         return Call()
                     else:
                         return Fold()
-
+                else:
+                    return Raise(self.stack + self.pip) # go all-in
                 
         # if something screws up, try checking
         return Check()
@@ -227,9 +216,6 @@ class psychicbot:
         self.opponent_showdown_bet_strength = []
         self.opponent_showdown_hand_strength = []
         self.opponent_previous_pip = 0
-
-        self.played_this_street = 0
-        #number of times we have acted this street, including current action
 
   
     def reset(self, won, last_hand):
