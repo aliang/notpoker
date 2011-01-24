@@ -3,14 +3,14 @@ from pokerbots.engine.game import Raise, Check, Call, Bet, Fold, Post, Deal, Sho
 from hand_evaluator import HandEvaluator
 from numpy import *
 
-class psychicbot:
+class trickybot:
     #def __init__(self, param1=0.4, param2=0.95, param5=100, param6=20, param7=0.3, param8=0.5):
     def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0):
         self.debug = False
         self.unlimited = True
         
         # my name
-        self.name = "psychicbot"
+        self.name = "trickybot"
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -134,6 +134,10 @@ class psychicbot:
         for action in self.legal:
             
             if isinstance(action, Bet):
+                
+                
+                if not(self.button) and (street == 3):# or street == 4):
+                    return Check()
                 
                 if x < 1:
                     if value_bet >= self.stack:
