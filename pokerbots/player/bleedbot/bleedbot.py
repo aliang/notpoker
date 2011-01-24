@@ -10,10 +10,6 @@ class bleedbot:
         
         # my name
         self.name = "bleedbot"
-        # to keep hand_history
-        self.hand_counter = 0
-        # to store percentiles for this hand
-        self.percentiles = {}
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -33,57 +29,7 @@ class bleedbot:
         self.pot = None
         self.time = None
 
-        #
-        # custom state variables
-        #
-        
-        self.p1 = param1
-        self.potodds_ratio_fixed = param1
-        # how strongly our betting depends on hand strength
-        # this is fixed after initialization
-
-        self.potodds_ratio_variable = param1
-        # how strongly our betting depends on hand strength
-        # this is influenced by opponent betting
-
-        self.potodds_ratio_showdown = param1
-        # how strongly our betting depends on hand strength
-        # this is incluenced by opponent showdown data
-
-        self.p2 = param2
-        self.slow_play_threshold = param2
-        # minimum hand percentile before we reduce our bet strength (slow play)
-
-        self.p3 = param3
-        # fraction of potodds_ratio that is affected by opponent bet strength
-        # [0-> not affected, 1->completely determined by]
-        
-        self.p4 = 1.0/param4
-        if self.p4 > 1:
-            self.p4 = 1
-        # how long we integrate opponent bet strength:
-        # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
-
-        self.p5 = param5
-        # how much we use showdown data to alter our potodds_ratio_variable
-        # 0 --> potodds_variable determined completely by non-showdown bet data
-        # 1 --> potodds variable determined completely by showdown data
-
-        self.p6 = param6
-        if self.p6 < 1:
-            self.p6 = 1
-        # number of recent showdowns used to determine opponent's behavior
-        
-        self.opponent_bet_history = []
-        self.opponent_showdown_bet_strength = []
-        self.opponent_showdown_hand_strength = []
-        self.opponent_previous_pip = 0
-        
-        # polynomial fitting of opponent behavior
-        self.coeff = []
-        self.corr = 0.0
-        self.opponent_showdown_potodds_estimate = 0.0
-        self.potodds_ratio_showdown = 0.0
+        self.reset()
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
@@ -104,14 +50,6 @@ class bleedbot:
             print('self.hands_played',self.hands_played)
             print('self.legal',self.legal)
             print('self.pot',self.pot)
-
-            
-        if self.hands_played != self.hand_counter:
-            self.hand_counter = self.hands_played
-            # reset stuff
-            self.percentiles = {}
-            self.opponent_percentiles = {}
-            self.evaluate_opponent()
         
         # self.last contains the last hand
         # define self.hand_history as [] in __init__
@@ -429,11 +367,63 @@ class bleedbot:
         provides the last hand if you want to update any statistics from it
         """
         
-        self.hand_counter = self.hands_played
-        # reset stuff
-        self.percentiles = {}
-        self.opponent_percentiles = {}
+
         #self.evaluate_opponent()
         
-        self.__init__(self.p1,self.p2,self.p3,1.0/self.p4,self.p5,self.p6)
+        #
+        # custom state variables
+        #
         
+        # to keep hand_history
+        self.hand_counter = 0
+        # to store percentiles for this hand
+        self.percentiles = {}
+        self.opponent_percentiles = {}
+        
+        self.p1 = param1
+        self.potodds_ratio_fixed = param1
+        # how strongly our betting depends on hand strength
+        # this is fixed after initialization
+
+        self.potodds_ratio_variable = param1
+        # how strongly our betting depends on hand strength
+        # this is influenced by opponent betting
+
+        self.potodds_ratio_showdown = param1
+        # how strongly our betting depends on hand strength
+        # this is incluenced by opponent showdown data
+
+        self.p2 = param2
+        self.slow_play_threshold = param2
+        # minimum hand percentile before we reduce our bet strength (slow play)
+
+        self.p3 = param3
+        # fraction of potodds_ratio that is affected by opponent bet strength
+        # [0-> not affected, 1->completely determined by]
+        
+        self.p4 = 1.0/param4
+        if self.p4 > 1:
+            self.p4 = 1
+        # how long we integrate opponent bet strength:
+        # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
+
+        self.p5 = param5
+        # how much we use showdown data to alter our potodds_ratio_variable
+        # 0 --> potodds_variable determined completely by non-showdown bet data
+        # 1 --> potodds variable determined completely by showdown data
+
+        self.p6 = param6
+        if self.p6 < 1:
+            self.p6 = 1
+        # number of recent showdowns used to determine opponent's behavior
+        
+        self.opponent_bet_history = []
+        self.opponent_showdown_bet_strength = []
+        self.opponent_showdown_hand_strength = []
+        self.opponent_previous_pip = 0
+        
+        # polynomial fitting of opponent behavior
+        self.coeff = []
+        self.corr = 0.0
+        self.opponent_showdown_potodds_estimate = 0.0
+        self.potodds_ratio_showdown = 0.0

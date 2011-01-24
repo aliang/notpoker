@@ -10,10 +10,6 @@ class masterchefC:
         
         # my name
         self.name = "masterchefC"
-        # to keep hand_history
-        self.hand_counter = 0
-        # to store percentiles for this hand
-        self.percentiles = {}
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -33,34 +29,7 @@ class masterchefC:
         self.pot = None
         self.time = None
 
-        #
-        # custom state variables
-        #
-        
-        self.potodds_ratio_fixed = param1
-        # how strongly our betting depends on hand strength
-        # this is fixed after initialization
-
-        self.potodds_ratio_variable = param1
-        # how strongly our betting depends on hand strength
-        # this is influenced by opponent behavior
-
-        self.slow_play_threshold = param2
-        # minimum hand percentile before we reduce our bet strength (slow play)
-
-        self.p3 = param3
-        # fraction of potodds_ratio that is affected by opponent bet strength
-        # [0-> not affected, 1->completely determined by]
-        
-        self.p4 = 1.0/param4
-        if self.p4 > 1:
-            self.p4 = 1
-        # how long we integrate opponent bet strength:
-        # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
-        
-        #self.opponent_bet_history = zeros(0)
-        self.opponent_hand_strength = 0
-        self.opponent_previous_pip = 0
+        self.reset()
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
@@ -81,14 +50,6 @@ class masterchefC:
             print('self.hands_played',self.hands_played)
             print('self.legal',self.legal)
             print('self.pot',self.pot)
-
-            
-        if self.hands_played != self.hand_counter:
-            self.hand_counter = self.hands_played
-            # reset stuff
-            self.percentiles = {}
-            self.opponent_percentiles = {}
-            #self.evaluate_opponent()
         
         # self.last contains the last hand
         # define self.hand_history as [] in __init__
@@ -353,8 +314,39 @@ class masterchefC:
         """Reset accepts a boolean indicating whether you won a match and
         provides the last hand if you want to update any statistics from it
         """
-        self.hand_counter = self.hands_played
-        # reset stuff
-        self.percentiles = {}
+        
         self.opponent_percentiles = {}
         #self.evaluate_opponent()
+        #
+        # custom state variables
+        #
+        
+        # to keep hand_history
+        self.hand_counter = 0
+        # to store percentiles for this hand
+        self.percentiles = {}
+        
+        self.potodds_ratio_fixed = param1
+        # how strongly our betting depends on hand strength
+        # this is fixed after initialization
+
+        self.potodds_ratio_variable = param1
+        # how strongly our betting depends on hand strength
+        # this is influenced by opponent behavior
+
+        self.slow_play_threshold = param2
+        # minimum hand percentile before we reduce our bet strength (slow play)
+
+        self.p3 = param3
+        # fraction of potodds_ratio that is affected by opponent bet strength
+        # [0-> not affected, 1->completely determined by]
+        
+        self.p4 = 1.0/param4
+        if self.p4 > 1:
+            self.p4 = 1
+        # how long we integrate opponent bet strength:
+        # 0.1 -> use ~ last 10 bets 0.5 -> use last ~2 bets
+        
+        #self.opponent_bet_history = zeros(0)
+        self.opponent_hand_strength = 0
+        self.opponent_previous_pip = 0

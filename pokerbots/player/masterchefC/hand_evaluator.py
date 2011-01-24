@@ -1,5 +1,3 @@
-import sys
-
 from pokereval import PokerEval
 from pokerbots.engine.game import Card
 

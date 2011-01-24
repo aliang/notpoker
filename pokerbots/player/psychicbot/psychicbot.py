@@ -10,10 +10,6 @@ class psychicbot:
         
         # my name
         self.name = "psychicbot"
-        # to keep hand_history
-        self.hand_counter = 0
-        # to store percentiles for this hand
-        self.percentiles = {}
 
         # game state variables -- these are updated by the engine which has its
         # own internal representation. so if you modify them, they'll just
@@ -32,59 +28,26 @@ class psychicbot:
         self.last = None
         self.pot = None
         self.time = None
-
-        #
-        # custom state variables
-        #
         
-        self.p1 = param1
-        self.potodds_ratio_variable = param1
-        # self.p1 is used for determining the fixed portion of A
-
-        self.p2 = param2
-        self.slow_play_threshold = param2
-        # minimum hand percentile before we reduce our bet strength (slow play)
-
-        self.p5 = param5
-        # number of bets required to use psychic betting analysis of opponent
+        # initial values of parameters
+        self.param1 = param1
+        self.param2 = param2
+        self.param5 = param5
+        self.param6 = param6
+        self.param7 = param7
+        self.param8 = param8
         
-        self.p6 = param6
-        # number of bets to use in finding the variable component of A
-        
-        self.p7 = param7
-        # variable component of A
-        
-        self.p8 = param8
-        # fraction of EV calculated via psychic powers
-        
-        self.opponent_bet_history = []
-        self.opponent_showdown_bet_strength = []
-        self.opponent_showdown_hand_strength = []
-        self.opponent_previous_pip = 0
-        
-        # polynomial fitting of opponent behavior
-        self.coeff = []
-        self.corr = 0.0
-        self.opponent_showdown_potodds_estimate = 0.0
-        self.potodds_ratio_showdown = 0.0
+        self.reset_internal_values()
 
     def respond(self):
         """Based on your game state variables (see the __init__), make a
         decision and return an action. If you return an illegal action, the
         engine will automatically check/fold you
         """
-            
+        
         if self.hands_played != self.hand_counter:
             self.hand_counter = self.hands_played
-            # reset stuff
             self.percentiles = {}
-            self.opponent_percentiles = {}
-            self.opponent_previous_pip = 0
-        
-        # self.last contains the last hand
-        # define self.hand_history as [] in __init__
-        # or you can't append to this list
-        # self.hand_history.append(self.last)
         
         # see other templates for a modular way of determining an action
         if not self.board.board:
@@ -130,6 +93,7 @@ class psychicbot:
 
         A = self.p1*(1-self.p7) + self.potodds_ratio_variable*self.p7
 
+        #print self.opponent['pip'],self.opponent_previous_pip
         opponent_bet = 1.0*(self.opponent['pip'] - self.opponent_previous_pip)/self.pot
         self.opponent_previous_pip = self.opponent['pip']
         chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet 
@@ -137,7 +101,10 @@ class psychicbot:
             self.opponent_bet_history.append(opponent_bet)
             self.potodds_ratio_variable = ((1-1.0/self.p6)*self.potodds_ratio_variable + 2.0/self.p6*opponent_bet)
             y = 1.0*sum(opponent_bet > array(self.opponent_bet_history))/len(self.opponent_bet_history) + 0.5*sum(opponent_bet == array(self.opponent_bet_history))/len(self.opponent_bet_history)
-            z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
+            if x == 1 and y == 1:
+                z == 1
+            else:
+                z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
             if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1:
                 x = z
         
@@ -157,11 +124,14 @@ class psychicbot:
             value_call = int(round(alphacall/(1-alphacall)*self.pot))
         else:
             value_call = self.stack
+            
+        #print alphacall,value_call
 
         if street == 5:
             value_bet = value_call
         
         for action in self.legal:
+            
             if isinstance(action, Bet):
                 if x < 1:
                     if value_bet >= self.stack:
@@ -176,12 +146,12 @@ class psychicbot:
                 
                 if x > s:
                     random_addition = int(floor(3*random.rand(1))) #random between 0 and 2 to throw off pattern-recognizers for string bets
-                    if 2*chips_to_add +random_addition <= self.stack:
+                    if 2*chips_to_add + random_addition <= self.stack:
                         return Raise(self.pip+2*chips_to_add + random_addition)
                     else:
                         return Raise(self.stack + self.pip)
                 
-                if x < 1:
+                else:
                     if value_bet >= self.stack:
                         if value_bet <= chips_to_add:
                             return Call()
@@ -193,10 +163,9 @@ class psychicbot:
                         return Call()
                     else:
                         return Fold()
-                else:
-                    return Raise(self.stack + self.pip) # go all-in
+            
             elif isinstance(action, Call): #only options are calling and folding
-                            
+                
                 if x < 1:
                     if value_call >= chips_to_add:
                         return Call()
@@ -208,16 +177,44 @@ class psychicbot:
         # if something screws up, try checking
         return Check()
     
+    
+    def reset_internal_values(self):
+    
+        # to keep hand_history
+        self.hand_counter = 0
+        # to store percentiles for this hand
+        self.percentiles = {}
+        self.opponent_percentiles = {}
+        
+        self.p1 = self.param1
+        self.potodds_ratio_variable = self.param1
+        # self.p1 is used for determining the fixed portion of A
+
+        self.p2 = self.param2
+        self.slow_play_threshold = self.param2
+        # minimum hand percentile before we reduce our bet strength (slow play)
+
+        self.p5 = self.param5
+        # number of bets required to use psychic betting analysis of opponent
+        
+        self.p6 = self.param6
+        # number of bets to use in finding the variable component of A
+        
+        self.p7 = self.param7
+        # variable component of A
+        
+        self.p8 = self.param8
+        # fraction of EV calculated via psychic powers
+        
+        self.opponent_bet_history = []
+        self.opponent_showdown_bet_strength = []
+        self.opponent_showdown_hand_strength = []
+        self.opponent_previous_pip = 0
+
+  
     def reset(self, won, last_hand):
         """Reset accepts a boolean indicating whether you won a match and
         provides the last hand if you want to update any statistics from it
         """
         
-        self.hand_counter = self.hands_played
-        # reset stuff
-        self.percentiles = {}
-        self.opponent_percentiles = {}
-        #self.evaluate_opponent()
-        
-        self.__init__(self.p1,self.p2,self.p5,self.p6,self.p7,self.p8)
-        
+        self.reset_internal_values()
