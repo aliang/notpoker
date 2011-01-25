@@ -3,10 +3,10 @@ from pokerbots.player.pokerbot import Pokerbot
 import time
 
 
-STUB_OUT_LOGGER = False
+STUB_OUT_LOGGER = True
 
-p1_name = 'masterchefC'
-p2_name = 'masterchefC'
+p1_name = 'trickybot'
+p2_name = 'trickybotB'
 p1 = Pokerbot(p1_name)
 p2 = Pokerbot(p2_name)
 p1_wins = 0

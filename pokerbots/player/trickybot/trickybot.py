@@ -3,7 +3,6 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class trickybot:
-    #def __init__(self, param1=0.4, param2=0.95, param5=100, param6=20, param7=0.3, param8=0.5):
     def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0, param9=0.1):
         self.debug = False
         self.unlimited = True
@@ -94,7 +93,8 @@ class trickybot:
         """
         Returns an action before the flop, based on the table and the player
         """
-        
+
+        """
         if street == 2:
             if self.button:
                 if self.played_this_street > 2:
@@ -115,6 +115,10 @@ class trickybot:
                 return Raise(self.pot*4)
             elif self.pot == self.bb*2:
                 return Bet(self.pot*4)
+        """
+
+        if self.played_this_street > 1:
+            self.slowplay_flag = True 
             
             
         
@@ -176,7 +180,7 @@ class trickybot:
             if isinstance(action, Bet):
                        
                 if not(self.button) and (street == 3 or street == 4): # first to act after flop,turn
-                    #self.played_this_street -= 1 #won't count this check as playing
+                    self.played_this_street -= 1 #won't count this check as playing
                     return Check()
 
                 if x > s and self.button: # Second to act (in position) with nuts
