@@ -109,15 +109,12 @@ def generate_bot(target_name, param_set):
     # commas after print statement are important!
     # TODO: This is really fragile, should match regex too
     for line in fileinput.input(target_full_file_name, inplace=1):
-        if fileinput.filelineno() == 6:
+        if fileinput.filelineno() == 5:
             print "class %s:" % (target_name,)
-        elif fileinput.filelineno() == 7:
+        elif fileinput.filelineno() == 6:
             # TODO: Use all parameters
-            if source_name == "psychicbot":
-                print "    def __init__(self, param1=%s, param2=%s, param5=%s, param6=%s, param7=%s, param8=%s):" % param_set[1:]
-            else:
-                print "    def __init__(self, param1=%s, param2=%s, param3=%s, param4=%s, param5=%s, param6=%s):" % param_set[1:]
-        elif fileinput.filelineno() == 12:
+            print "    def __init__(self, param1=%s, param2=%s, param5=%s, param6=%s, param7=%s, param8=%s, param9=%s):" % param_set[1:]
+        elif fileinput.filelineno() == 11:
             print "        self.name = \"%s\"" % (target_name,)
         else:
             print line,
@@ -131,32 +128,26 @@ if __name__ == '__main__':
     # p2_choices = (0.7, 0.8, 0.9, 0.95, 0.975, 0.99, 1.0)
     # p3_choices = (0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
     # p4_choices = (1, 2, 5, 10, 20, 30, 50, 100)
-    botnames = ["masterchefC", "bleedbot"]
+    botnames = ["trickybot"]
     # previous results showed that this number tended lower than 0.6 but it may change for a psychicbot?
-    p1 = [0.35, 0.4, 0.45]
-    p2 = [0.95, 0.99]
-    p3 = [0.3, 0.5, 0.7]
-    p4 = [5, 10, 20]
-    p5 = [0.3, 0.5, 0.7]
-    p6 = [2, 8, 16]
-    
-    # psychicbot is different
-    psychicbot_p5 = [20, 50, 100, 200]
-    psychicbot_p8 = [0.25, 0.5, 0.75, 1]
+    p1 = [0.25, 0.30, 0.35, 0.4, 0.45]
+    p2 = [0.95]
+    p3 = [20, 50, 100]
+    p4 = [10, 20]
+    p5 = [0.4, 0.5, 0.6, 0.7]
+    p6 = [1]
+    p7 = [0.0, 0.1, 0.2]
     
     # 972 +  864 matches
     print botnames
-    print "parameters 1-6 for these bots"
+    print "parameters for these bots"
     print p1
     print p2
     print p3
     print p4
     print p5
     print p6
-    print "additional psychicbot parameters 5 and 8"
-    print psychicbot_p5
-    print psychicbot_p8
-    teams = list(itertools.product(botnames, p1, p2, p3, p4, p5, p6)) + \
-        list(itertools.product(["psychicbot"], p1, p2, psychicbot_p5, p4, p3, psychicbot_p8))
+    print p7
+    teams = list(itertools.product(botnames, p1, p2, p3, p4, p5, p6, p7))
     best_team = run_tournament(teams)
     print best_team

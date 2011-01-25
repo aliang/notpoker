@@ -3,10 +3,9 @@ from hand_evaluator import HandEvaluator
 from numpy import *
 
 class trickybot:
-    #def __init__(self, param1=0.4, param2=0.95, param5=100, param6=20, param7=0.3, param8=0.5):
     def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0, param9=0.1):
         self.debug = False
-        self.unlimited = True
+        self.unlimited = False
         
         # my name
         self.name = "trickybot"
