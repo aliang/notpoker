@@ -1,5 +1,5 @@
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold, Post, Deal, Show, Card
-from hand_evaluator import HandEvaluator
+from pokerbots.player.trickybot.hand_evaluator import HandEvaluator
 from numpy import *
 
 class trickybot:
