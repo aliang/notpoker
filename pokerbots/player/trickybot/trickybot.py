@@ -93,7 +93,8 @@ class trickybot:
         """
         Returns an action before the flop, based on the table and the player
         """
-        
+
+        """
         if street == 2:
             if self.button:
                 if self.played_this_street > 2:
@@ -114,6 +115,10 @@ class trickybot:
                 return Raise(self.pot*4)
             elif self.pot == self.bb*2:
                 return Bet(self.pot*4)
+        """
+
+        if self.played_this_street > 1:
+            self.slowplay_flag = True 
             
             
         
@@ -175,7 +180,7 @@ class trickybot:
             if isinstance(action, Bet):
                        
                 if not(self.button) and (street == 3 or street == 4): # first to act after flop,turn
-                    #self.played_this_street -= 1 #won't count this check as playing
+                    self.played_this_street -= 1 #won't count this check as playing
                     return Check()
 
                 if x > s and self.button: # Second to act (in position) with nuts
