@@ -118,7 +118,7 @@ class trickybot:
                 z == 1
             else:
                 z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
-            if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1:
+            if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1 and street > 2:
                 x = z
         
         if x <= s:
