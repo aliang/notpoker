@@ -93,6 +93,9 @@ class trickybot:
         """
         Returns an action before the flop, based on the table and the player
         """
+
+        if self.played_this_street > 1: #if this is our second real action this hand
+            self.slowplay_flag = True #they're fucking with us
         
         if len(self.opponent_bet_history) > self.p5:
             self.opponent_bet_history = self.opponent_bet_history[-self.p5:]
@@ -152,6 +155,10 @@ class trickybot:
             if isinstance(action, Bet):
                        
                 if not(self.button) and (street == 3 or street == 4):
+                    self.played_this_street -= 1 #won't count this check as playing
+                    return Check()
+
+                if self.slowplay_flag:
                     return Check()
                 
                 if value_bet >= self.stack:
@@ -173,12 +180,12 @@ class trickybot:
                 
                 else:
                     if value_bet >= self.stack:
-                        if value_bet <= chips_to_add or self.played_this_street > 1: #defense
+                        if value_bet <= chips_to_add or self.slowplay_flag: #defense
                             return Call()
                         else:
                             return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
-                        if self.played_this_street > 1: #defense against bleeding
+                        if self.slowplay_flag: #defense against bleeding
                             return Call()
                         else
                             return Raise(value_bet + self.pip)
