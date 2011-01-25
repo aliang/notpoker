@@ -2,16 +2,16 @@ from pokerbots.engine.game import Raise, Check, Call, Bet, Fold, Post, Deal, Sho
 from hand_evaluator import HandEvaluator
 from numpy import *
 
-class psychicbot:
+class trickybotB:
     #def __init__(self, param1=0.4, param2=0.95, param5=100, param6=20, param7=0.3, param8=0.5):
-    def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0):
+    def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0, param9=0.0):
         self.debug = False
         self.unlimited = True
         
         # my name
-        self.name = "psychicbot"
+        self.name = "trickybotB"
 
-        # name of last played opponent
+        # name of last opponent played
         self.opponent_name = None
 
         # game state variables -- these are updated by the engine which has its
@@ -39,6 +39,7 @@ class psychicbot:
         self.param6 = param6
         self.param7 = param7
         self.param8 = param8
+        self.param9 = param9
         
         self.reset_internal_values()
 
@@ -51,6 +52,7 @@ class psychicbot:
         if self.hands_played != self.hand_counter:
             self.hand_counter = self.hands_played
             self.percentiles = {}
+            self.slowplay_flag = False
         
         # see other templates for a modular way of determining an action
         if not self.board.board:
@@ -93,6 +95,29 @@ class psychicbot:
         Returns an action before the flop, based on the table and the player
         """
         
+        if street == 2:
+            if self.button:
+                if self.played_this_street > 2:
+                    self.slowplay_flag = True #they're fucking with us
+            else:
+                if self.played_this_street > 1:
+                    self.slowplay_flag = True #they're fucking with us
+        else:
+            if self.button:
+                if self.played_this_street > 1:
+                    self.slowplay_flag = True #they're fucking with us
+            else:
+                if self.played_this_street > 2:
+                    self.slowplay_flag = True #they're fucking with us
+                    
+        if street == 2 and random.rand(1) < self.p9: #stab at pot p9% of the time
+            if (self.pot == self.bb+self.sb):
+                return Raise(self.pot*4)
+            elif self.pot == self.bb*2:
+                return Bet(self.pot*4)
+            
+            
+        
         if len(self.opponent_bet_history) > self.p5:
             self.opponent_bet_history = self.opponent_bet_history[-self.p5:]
         
@@ -118,7 +143,7 @@ class psychicbot:
                 z == 1
             else:
                 z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
-            if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1:
+            if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1 and street > 2:
                 x = z
         
         if x <= s:
@@ -135,7 +160,7 @@ class psychicbot:
             alphacall = A*x
         elif x <= 1:
             alphacall = 1 #make sure we call anything in our slowplay zone
-
+            
         if alphacall < 1:
             value_call = int(round(alphacall/(1-alphacall)*self.pot))
         else:
@@ -149,13 +174,27 @@ class psychicbot:
         for action in self.legal:
             
             if isinstance(action, Bet):
+                       
+                if not(self.button) and (street == 3 or street == 4): # first to act after flop,turn
+                    #self.played_this_street -= 1 #won't count this check as playing
+                    return Check()
 
+                if x > s and self.button: # Second to act (in position) with nuts
+                    if self.slowplay_flag: #if they have good cards, lets push them
+                        return Bet(self.pot)
+                    else:
+                        value_bet = int(floor(.75*self.pot*random.rand(1)))+int(round(.25*self.pot))
+                        
+                if self.slowplay_flag:
+                    return Check()
+                
                 if value_bet >= self.stack:
                     return Bet(self.stack)
                 elif value_bet > 0:
                     return Bet(value_bet)
+                else:
+                    return Check()
 
-                
             elif isinstance(action, Raise):
                 
                 if x > s: # pump money out with reraising (always min raise)
@@ -168,12 +207,12 @@ class psychicbot:
                 
                 else:
                     if value_bet >= self.stack:
-                        if value_bet <= chips_to_add:
+                        if value_bet <= chips_to_add or self.slowplay_flag: #defense
                             return Call()
                         else:
                             return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
-                        if False: #self.played_this_street > 1: #defense against bleeding
+                        if self.slowplay_flag: #defense against bleeding
                             return Call()
                         else:
                             return Raise(value_bet + self.pip)
@@ -183,11 +222,11 @@ class psychicbot:
                         return Fold()
             
             elif isinstance(action, Call): #only options are calling and folding
-
-                    if value_call >= chips_to_add:
-                        return Call()
-                    else:
-                        return Fold()
+                
+                if value_call >= chips_to_add:
+                    return Call()
+                else:
+                    return Fold()
 
                 
         # if something screws up, try checking
@@ -221,14 +260,17 @@ class psychicbot:
         
         self.p8 = self.param8
         # fraction of EV calculated via psychic powers
+
+        self.p9 = self.param9
+        # percent of time we stab at pot preflop
         
         self.opponent_bet_history = []
-        self.opponent_showdown_bet_strength = []
-        self.opponent_showdown_hand_strength = []
         self.opponent_previous_pip = 0
 
         self.played_this_street = 0
         #number of times we have acted this street, including current action
+
+        self.slowplay_flag = False
 
   
     def reset(self, won, last_hand):

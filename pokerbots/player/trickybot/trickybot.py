@@ -4,7 +4,7 @@ from numpy import *
 
 class trickybot:
     #def __init__(self, param1=0.4, param2=0.95, param5=100, param6=20, param7=0.3, param8=0.5):
-    def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0):
+    def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0, param9=0.1):
         self.debug = False
         self.unlimited = True
         
@@ -39,6 +39,7 @@ class trickybot:
         self.param6 = param6
         self.param7 = param7
         self.param8 = param8
+        self.param9 = param9
         
         self.reset_internal_values()
 
@@ -93,9 +94,29 @@ class trickybot:
         """
         Returns an action before the flop, based on the table and the player
         """
-
-        if self.played_this_street > 1: #if this is our second real action this hand
-            self.slowplay_flag = True #they're fucking with us
+        
+        if street == 2:
+            if self.button:
+                if self.played_this_street > 2:
+                    self.slowplay_flag = True #they're fucking with us
+            else:
+                if self.played_this_street > 1:
+                    self.slowplay_flag = True #they're fucking with us
+        else:
+            if self.button:
+                if self.played_this_street > 1:
+                    self.slowplay_flag = True #they're fucking with us
+            else:
+                if self.played_this_street > 2:
+                    self.slowplay_flag = True #they're fucking with us
+                    
+        if street == 2 and random.rand(1) < self.p9: #stab at pot p9% of the time
+            if (self.pot == self.bb+self.sb):
+                return Raise(self.pot*4)
+            elif self.pot == self.bb*2:
+                return Bet(self.pot*4)
+            
+            
         
         if len(self.opponent_bet_history) > self.p5:
             self.opponent_bet_history = self.opponent_bet_history[-self.p5:]
@@ -154,10 +175,16 @@ class trickybot:
             
             if isinstance(action, Bet):
                        
-                if not(self.button) and (street == 3 or street == 4):
-                    self.played_this_street -= 1 #won't count this check as playing
+                if not(self.button) and (street == 3 or street == 4): # first to act after flop,turn
+                    #self.played_this_street -= 1 #won't count this check as playing
                     return Check()
 
+                if x > s and self.button: # Second to act (in position) with nuts
+                    if self.slowplay_flag: #if they have good cards, lets push them
+                        return Bet(self.pot)
+                    else:
+                        value_bet = int(floor(.75*self.pot*random.rand(1)))+int(round(.25*self.pot))
+                        
                 if self.slowplay_flag:
                     return Check()
                 
@@ -187,7 +214,7 @@ class trickybot:
                     elif value_bet >= 2 * chips_to_add:
                         if self.slowplay_flag: #defense against bleeding
                             return Call()
-                        else
+                        else:
                             return Raise(value_bet + self.pip)
                     elif value_call >= chips_to_add:
                         return Call()
@@ -233,6 +260,9 @@ class trickybot:
         
         self.p8 = self.param8
         # fraction of EV calculated via psychic powers
+
+        self.p9 = self.param9
+        # percent of time we stab at pot preflop
         
         self.opponent_bet_history = []
         self.opponent_previous_pip = 0

@@ -2,13 +2,13 @@ from pokerbots.engine.game import Table
 from pokerbots.player.pokerbot import Pokerbot
 import time
 
-p1_name = 'masterchefC'
-p2_name = 'bleedbot'
+p1_name = 'trickybotB'
+p2_name = 'trickybot'
 p1 = Pokerbot(p1_name)
 p2 = Pokerbot(p2_name)
 p1_wins = 0
 p2_wins = 0
-num_matches = 100
+num_matches = 400
 
 for i in range(num_matches):
     t = Table(p1, p2)
