@@ -168,12 +168,12 @@ class psychicbot:
                 
                 else:
                     if value_bet >= self.stack:
-                        if value_bet <= chips_to_add or self.played_this_street > 1: #defense
+                        if value_bet <= chips_to_add:
                             return Call()
                         else:
                             return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
-                        if self.played_this_street > 1: #defense against bleeding
+                        if False #self.played_this_street > 1: #defense against bleeding
                             return Call()
                         else:
                             return Raise(value_bet + self.pip)

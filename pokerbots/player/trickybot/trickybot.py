@@ -173,12 +173,15 @@ class trickybot:
                 
                 else:
                     if value_bet >= self.stack:
-                        if value_bet <= chips_to_add:
+                        if value_bet <= chips_to_add or self.played_this_street > 1: #defense
                             return Call()
                         else:
                             return Raise(self.stack + self.pip)
                     elif value_bet >= 2 * chips_to_add:
-                        return Raise(value_bet + self.pip)
+                        if self.played_this_street > 1: #defense against bleeding
+                            return Call()
+                        else
+                            return Raise(value_bet + self.pip)
                     elif value_call >= chips_to_add:
                         return Call()
                     else:
