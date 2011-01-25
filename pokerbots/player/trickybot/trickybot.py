@@ -3,7 +3,7 @@ from pokerbots.player.trickybot.hand_evaluator import HandEvaluator
 from numpy import *
 
 class trickybot:
-    def __init__(self, param1=0.35, param2=0.95, param5=20, param6=10, param7=0.7, param8=1.0, param9=0.1):
+    def __init__(self, param1=0.35, param2=0.95, param5=30, param6=20, param7=0.7, param8=1.0, param9=0.05):
         self.debug = False
         self.unlimited = False
         
@@ -94,33 +94,14 @@ class trickybot:
         Returns an action before the flop, based on the table and the player
         """
 
-        """
-        if street == 2:
-            if self.button:
-                if self.played_this_street > 2:
-                    self.slowplay_flag = True #they're fucking with us
-            else:
-                if self.played_this_street > 1:
-                    self.slowplay_flag = True #they're fucking with us
-        else:
-            if self.button:
-                if self.played_this_street > 1:
-                    self.slowplay_flag = True #they're fucking with us
-            else:
-                if self.played_this_street > 2:
-                    self.slowplay_flag = True #they're fucking with us
-                    
-        if street == 2 and random.rand(1) < self.p9: #stab at pot p9% of the time
-            if (self.pot == self.bb+self.sb):
-                return Raise(self.pot*4)
-            elif self.pot == self.bb*2:
-                return Bet(self.pot*4)
-        """
-
+        if random.rand(1) < self.p9 and self.stack > 2*self.pot:
+            if self.pot == 2*self.bb:
+                return Bet(3*self.pot)
+            elif self.pot == self.bb+self.sb:
+                return Raise(3*self.pot)
+            
         if self.played_this_street > 1:
             self.slowplay_flag = True 
-            
-            
         
         if len(self.opponent_bet_history) > self.p5:
             self.opponent_bet_history = self.opponent_bet_history[-self.p5:]
