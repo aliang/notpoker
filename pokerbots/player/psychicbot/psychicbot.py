@@ -1,5 +1,4 @@
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold, Post, Deal, Show, Card
-# from random import randint
 from hand_evaluator import HandEvaluator
 from numpy import *
 
@@ -110,7 +109,7 @@ class psychicbot:
         self.opponent_previous_pip = self.opponent['pip']
         chips_to_add = self.opponent['pip'] - self.pip #size of opponent's bet 
 
-        # code to predict opponents strength based on their bets
+        # predict opponents strength based on their bets
         if opponent_bet > 0:
             self.opponent_bet_history.append(opponent_bet)
             self.potodds_ratio_variable = ((1-1.0/self.p6)*self.potodds_ratio_variable + 2.0/self.p6*opponent_bet)
