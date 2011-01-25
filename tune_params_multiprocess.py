@@ -93,8 +93,8 @@ def face_off(p1_params, p2_params, base_name):
             # print "So far, of %s matches, %s won %s and %s won %s" % \
                 # (i + 1, p1_name, p1_wins, p2_name, p2_wins,)
     print "%s %s - %s %s (%s matches)" % \
-        ("(%s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % p1_params, p1_wins,
-        p2_wins, "(%s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % p2_params,
+        ("(%s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % p1_params, p1_wins,
+        p2_wins, "(%s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)" % p2_params,
         num_matches)
     sys.stdout.flush()
     if p1_wins > p2_wins:
