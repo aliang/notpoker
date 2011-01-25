@@ -1,5 +1,4 @@
 from pokerbots.engine.game import Raise, Check, Call, Bet, Fold, Post, Deal, Show, Card
-# from random import randint
 from hand_evaluator import HandEvaluator
 from numpy import *
 
@@ -106,7 +105,7 @@ class trickybot:
                 z == 1
             else:
                 z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
-            if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1:
+            if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1 and street > 2:
                 x = z
         
         if x <= s:
@@ -136,7 +135,7 @@ class trickybot:
             if isinstance(action, Bet):
                 
                 
-                if not(self.button) and (street == 3):# or street == 4):
+                if not(self.button) and (street == 3 or street == 4):
                     return Check()
                 
                 if x < 1:
@@ -151,11 +150,15 @@ class trickybot:
             elif isinstance(action, Raise):
                 
                 if x > s:
-                    random_addition = int(floor(3*random.rand(1))) #random between 0 and 2 to throw off pattern-recognizers for string bets
-                    if 2*chips_to_add + random_addition <= self.stack:
-                        return Raise(self.pip+2*chips_to_add + random_addition)
+                
+                    if street == 2:
+                        return Call()
                     else:
-                        return Raise(self.stack + self.pip)
+                        random_addition = int(floor(3*random.rand(1))) #random between 0 and 2 to throw off pattern-recognizers for string bets
+                        if 2*chips_to_add + random_addition <= self.stack:
+                            return Raise(self.pip+2*chips_to_add + random_addition)
+                        else:
+                            return Raise(self.stack + self.pip)
                 
                 else:
                     if value_bet >= self.stack:
