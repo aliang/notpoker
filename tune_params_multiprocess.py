@@ -3,6 +3,9 @@ from pokerbots.player.pokerbot import Pokerbot
 import sys, itertools, random, fileinput, shutil, os, time
 from multiprocessing import Pool
 
+STUB_OUT_LOGGER = True
+def stub(*args, **kwargs):
+    pass
 NUMBER_OF_PROCESSES = 4
 # See bottom of file for parameter combinations and starting the game
 
@@ -61,6 +64,22 @@ def face_off(p1_params, p2_params, base_name):
     num_matches = 25
     for i in range(num_matches):
         t = Table(p1, p2)
+        if STUB_OUT_LOGGER:
+            t.logger.action = stub
+            t.logger.begin_hand = stub
+            t.logger.blinds = stub
+            t.logger.end = stub
+            t.logger.file_one = stub
+            t.logger.file_two = stub
+            t.logger.preflop = stub
+            t.logger.refund = stub
+            t.logger.results = stub
+            t.logger.showdown = stub
+            t.logger.street = stub
+            t.logger.time = stub
+            t.logger.write_both = stub
+            t.logger.write_one = stub
+            t.logger.write_two = stub
         t.play_match()
         # To find the winner, read the state. Who has 800 chips?
         # TODO: We assume no timeout!
@@ -124,12 +143,7 @@ def filter(team):
     return True
 
 if __name__ == '__main__':
-    # p1_choices = (0.4, 0.45, 0.5, 0.55, 0.6)
-    # p2_choices = (0.7, 0.8, 0.9, 0.95, 0.975, 0.99, 1.0)
-    # p3_choices = (0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
-    # p4_choices = (1, 2, 5, 10, 20, 30, 50, 100)
     botnames = ["trickybot"]
-    # previous results showed that this number tended lower than 0.6 but it may change for a psychicbot?
     p1 = [0.25, 0.30, 0.35, 0.4, 0.45]
     p2 = [0.95]
     p3 = [20, 50, 100]
