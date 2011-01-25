@@ -124,9 +124,7 @@ class trickybot:
         
         if len(self.opponent_bet_history) > self.p5:
             self.opponent_bet_history = self.opponent_bet_history[-self.p5:]
-        
-        mu = mean(self.opponent_bet_history)
-        sigma = std(self.opponent_bet_history)
+
         
         x = percentile            
         s = self.slow_play_threshold
@@ -147,8 +145,11 @@ class trickybot:
                 z == 1
             else:
                 z = x*(1-y)/(x*(1-y)+(1-x)*y) * self.p8 + x * (1-self.p8)
-            if len(self.opponent_bet_history) >= self.p5/2 and sigma/mu > 0.1 and street > 2:
-                x = z
+            if len(self.opponent_bet_history) >= self.p5/2 and street > 2:
+                mu = mean(self.opponent_bet_history)
+                sigma = std(self.opponent_bet_history)
+                if mu > 0 and sigma/mu > 0.1:
+                    x = z
         
         if x <= s:
             alpha = A*x
