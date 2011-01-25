@@ -51,6 +51,7 @@ class trickybot:
         if self.hands_played != self.hand_counter:
             self.hand_counter = self.hands_played
             self.percentiles = {}
+            self.slowplay_flag = False
         
         # see other templates for a modular way of determining an action
         if not self.board.board:
@@ -149,8 +150,7 @@ class trickybot:
         for action in self.legal:
             
             if isinstance(action, Bet):
-                
-                
+                       
                 if not(self.button) and (street == 3 or street == 4):
                     return Check()
                 
@@ -225,12 +225,12 @@ class trickybot:
         # fraction of EV calculated via psychic powers
         
         self.opponent_bet_history = []
-        self.opponent_showdown_bet_strength = []
-        self.opponent_showdown_hand_strength = []
         self.opponent_previous_pip = 0
 
         self.played_this_street = 0
         #number of times we have acted this street, including current action
+
+        self.slowplay_flag = False
 
   
     def reset(self, won, last_hand):
